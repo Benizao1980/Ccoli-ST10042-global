@@ -50,29 +50,27 @@ conda env create -f environment.yml
 conda activate st10042
 ```
 
-PubMLST now requires authentication for records added after 31 December 2024.
+PubMLST requires authentication for records added after 31 December 2024.
 Create a personal API key in your PubMLST/BIGSdb profile and keep it outside Git:
 
 ```bash
 export PUBMLST_API_KEY='...'
 ```
 
-Query **all current ST10042**:
+Retrieve **all current ST10042 metadata and available PubMLST assemblies**, plus a
+separate Peru manifest:
+
+```bash
+sbatch hpc/01_pubmlst.sbatch
+```
+
+Equivalent direct command for the global pull:
 
 ```bash
 python scripts/01_query_pubmlst_st10042.py \
   --out data/pubmlst_st10042_all.tsv \
-  --json-out data/pubmlst_st10042_all.json
-```
-
-Query the focal Peru subset and download available PubMLST assemblies:
-
-```bash
-python scripts/01_query_pubmlst_st10042.py \
-  --country Peru \
-  --out data/peru_st10042_current.tsv \
-  --json-out data/peru_st10042_current.json \
-  --download-contigs data/peru_assemblies
+  --json-out data/pubmlst_st10042_all.json \
+  --download-contigs data/pubmlst_st10042_assemblies
 ```
 
 The exploratory query used to start this project contained 23 confirmed Peru ST10042
@@ -81,7 +79,7 @@ always uses the live PubMLST query rather than hard-coding those isolates.
 
 ## Reproducibility checkpoint
 
-Before adding new PubMLST genomes, reproduce the published European result:
+Before interpreting the expanded global dataset, reproduce the published European result:
 
 - 217 input isolates
 - 211 genomes retained for Figure 4
