@@ -1,0 +1,29 @@
+# Raw sequence data and large generated outputs
+data/*_reads/
+data/*_assemblies/
+data/pubmlst_st10042_assemblies/
+data/peru_assemblies/
+results/
+schema/
+
+# Credentials / local configuration
+.env
+*.key
+*.secret
+credentials*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Conda / logs / HPC
+*.out
+*.err
+slurm-*.out
+.DS_Store
+
+# Keep tracked placeholders
+!results/.gitkeep
+!schema/.gitkeep
