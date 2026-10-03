@@ -27,3 +27,6 @@ slurm-*.out
 # Keep tracked placeholders
 !results/.gitkeep
 !schema/.gitkeep
+
+# BIGSdb OAuth tokens
+.bigsdb_tokens/
