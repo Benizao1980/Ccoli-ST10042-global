@@ -1,0 +1,5 @@
+PubMLST_ID	Isolate	Country	Region	City	Year	Source	Epidemiology	ST	Clonal_complex	BioProject	BioSample	Status
+149884	CAL00119-500001	Peru	Lima	Lima	2023	goat	commercial	10042	ST-828 complex	PRJNA912682	SAMN61588309	Known 2023 Peru ST10042
+149885	CAL00120-500011	Peru	Lima	Lima	2023	goat	commercial	10042	ST-828 complex	PRJNA912682	SAMN61588310	Known 2023 Peru ST10042
+149886	CAL00129-500017	Peru	Lima	Lima	2023	goat	commercial	10042	ST-828 complex	PRJNA912682	SAMN61588311	Known 2023 Peru ST10042
+149892	CAL00109-500089	Peru	Lima	Lima	2023	chicken	commercial	10042	ST-828 complex	PRJNA912682	SAMN61588307	Known 2023 Peru ST10042

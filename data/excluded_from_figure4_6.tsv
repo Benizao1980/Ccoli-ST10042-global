@@ -1,0 +1,7 @@
+Strain_ID	ENA/SRA_ID	Bioproject	Run Accession Number	Isolation year	Country	Source	Source Group	Source Subgroup	Sample	Geographic Region	MLST_ST	Clonal_complex	porA allele	Antimicrobial resistance profile (genotype)	Minimum spanning tree (Figure 3)	Minimum spanning tree (Figure 4)	Source Group clean	Included in Figure 4	Figure 4 cluster clean	Cluster 21 member
+FR-10	FR-10	PRJEB109289	ERR16782086	2025	France	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O);blaOXA-61;porA(35)	-	-	Human	No	-	No
+DE-30	DE-30	PRJEB109289	ERR16782029	2025	Germany	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O/32/O);blaOXA-61;blaOXA-61 promotor:-57G>T;porA(35)	-	-	Human	No	-	No
+LU-26	LU-26	PRJEB109289	ERR16782041	2024	Luxembourg	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O/32/O);blaOXA-61;blaOXA-61 promotor:-57G>T;porA(35)	-	-	Human	No	-	No
+UK-2	SAMPLE_OXC14135_S990	PRJEB62515	ERR12084432	2022	United Kingdom	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O/32/O);blaOXA-61;blaOXA-61 promotor:-57G>T;porA(35)	-	-	Human	No	-	No
+UK-4	SAMPLE_PID-1903-OXC14965_S113	PRJEB62515	ERR13657389	2023	United Kingdom	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O/32/O);blaOXA-61;blaOXA-61 promotor:-57G>T;porA(35)	-	-	Human	No	-	No
+UK-6	SAMPLE_PID-1903-OXC14975_S145	PRJEB62515	ERR13657421	2023	United Kingdom	Human	Human	Human	Faeces	-	10042	ST-828 complex	35	GyrA:p.T86I;tet(O/32/O);blaOXA-61;blaOXA-61 promotor:-57G>T;porA(35)	-	-	Human	No	-	No

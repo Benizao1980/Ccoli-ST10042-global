@@ -1,0 +1,25 @@
+project: Ccoli-ST10042-global
+species: Campylobacter coli
+sequence_type: 10042
+clonal_complex: ST-828 complex
+
+reference_study:
+  citation: Azevedo et al. 2026 Emerging Infectious Diseases
+  isolates_total: 217
+  isolates_figure4: 211
+  cgmlst_scheme: PubMLST Campylobacter cgMLST v1
+  cgmlst_loci: 1343
+  scheme_id: 4
+  chewbbaca_version: 3.1.2
+  bs_r_threshold: 0.6
+  size_threshold: 0.2
+  min_locus_call_fraction: 0.95
+  cluster_threshold_allelic_differences: 5
+  reportree_version: 2.5.4
+  mst_algorithm: MSTreeV2
+
+focal_population:
+  country: Peru
+  expected_pubmlst_records: 23
+  lima_expected: 16
+  iquitos_expected: 7

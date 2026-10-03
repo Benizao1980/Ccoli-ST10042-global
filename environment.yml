@@ -1,0 +1,18 @@
+name: st10042
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.11
+  - requests
+  - pandas
+  - numpy
+  - biopython
+  - entrez-direct
+  - sra-tools
+  - seqkit
+  - pigz
+  - fastqc
+  - multiqc
+  - pip
