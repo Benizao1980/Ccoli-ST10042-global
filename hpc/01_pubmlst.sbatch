@@ -12,20 +12,25 @@ echo "ST10042 PubMLST job starting"
 echo "date: $(date)"
 echo "host: $(hostname)"
 echo "workdir: $(pwd)"
-echo "conda env: ${CONDA_DEFAULT_ENV:-<not set>}"
-echo "python: $(command -v python || true)"
+echo "inherited conda env: ${CONDA_DEFAULT_ENV:-<not set>}"
+echo "inherited CONDA_EXE: ${CONDA_EXE:-<not set>}"
 
-# sbatch inherits the submitting shell environment by default on Puma.
-# Submit this job from an activated 'st10042' environment; this avoids sourcing
-# Puma's /etc/bashrc inside the batch shell.
-if [[ "${CONDA_DEFAULT_ENV:-}" != "st10042" ]]; then
-  echo "ERROR: activate the st10042 conda environment before sbatch." >&2
+# Re-initialise conda explicitly inside the batch shell.  Slurm can inherit
+# CONDA_DEFAULT_ENV without inheriting the matching PATH, which previously
+# left us with /usr/bin/python even though the environment name was st10042.
+if [[ -z "${CONDA_EXE:-}" || ! -x "${CONDA_EXE}" ]]; then
+  echo "ERROR: CONDA_EXE was not inherited. Submit from an activated conda shell." >&2
   exit 2
 fi
+eval "$("${CONDA_EXE}" shell.bash hook)"
+conda activate st10042
+
+echo "active conda env: ${CONDA_DEFAULT_ENV:-<not set>}"
+echo "python: $(command -v python)"
+python --version
 
 if [[ -z "${PUBMLST_API_KEY:-}" ]]; then
   echo "ERROR: PUBMLST_API_KEY is not exported into the sbatch environment." >&2
-  echo "Run: export PUBMLST_API_KEY='...' before sbatch." >&2
   exit 2
 fi
 echo "PubMLST API key: present"
