@@ -5,8 +5,11 @@
 #SBATCH --time=02:00:00
 #SBATCH --output=st10042_ena-%j.out
 
-set -euo pipefail
+# Puma's /etc/bashrc is not safe under nounset during initialisation.
+set -eo pipefail
 source ~/.bashrc
+set -u
+
 conda activate st10042
 
 python scripts/02_fetch_ena_reads.py \
