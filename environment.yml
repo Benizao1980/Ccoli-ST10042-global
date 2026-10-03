@@ -16,3 +16,5 @@ dependencies:
   - fastqc
   - multiqc
   - pip
+  - pip:
+      - bigsdb-downloader
