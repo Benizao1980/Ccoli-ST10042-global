@@ -68,6 +68,13 @@ def main():
         json={"scheme.1.ST": 10042},
         timeout=120,
     )
+    if r.status_code == 401:
+        raise SystemExit(
+            "ERROR: PubMLST returned HTTP 401 Unauthorized. "
+            "PUBMLST_API_KEY is present but was not accepted. "
+            "Check/regenerate the personal API key in your PubMLST/BIGSdb profile, "
+            "then export the replacement key before rerunning."
+        )
     r.raise_for_status()
     result = r.json()
     urls = result.get("isolates", [])
