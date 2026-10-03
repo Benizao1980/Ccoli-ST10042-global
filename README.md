@@ -50,12 +50,10 @@ conda env create -f environment.yml
 conda activate st10042
 ```
 
-PubMLST requires authentication for records added after 31 December 2024.
-Create a personal API key in your PubMLST/BIGSdb profile and keep it outside Git:
-
-```bash
-export PUBMLST_API_KEY='...'
-```
+The complete contemporary PubMLST search uses OAuth. The ST10042 search endpoint is
+an HTTP POST request, and PubMLST does not allow the simple personal X-API-Key
+credential for POST requests. One-time OAuth setup is documented in
+[`hpc/README.md`](hpc/README.md).
 
 Retrieve **all current ST10042 metadata and available PubMLST assemblies**, plus a
 separate Peru manifest:
