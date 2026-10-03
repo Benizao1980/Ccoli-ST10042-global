@@ -9,19 +9,45 @@ conda env create -f environment.yml
 conda activate st10042
 ```
 
-## PubMLST authentication
-
-PubMLST restricts access to records added after 31 Dec 2024 unless authenticated.
-Create a personal API key from your PubMLST/BIGSdb profile and export it in the shell:
+For an existing environment after repository updates:
 
 ```bash
-export PUBMLST_API_KEY='your-key-here'
+conda env update -f environment.yml
 ```
 
-Do **not** commit the key. The query script sends it as `X-API-Key` on the search,
-record and FASTA requests.
+## PubMLST authentication: OAuth, not a personal API key
 
-## Recommended first job: retrieve the current global ST10042 population
+The ST10042 isolate search uses the BIGSdb `/isolates/search` endpoint, which is an
+HTTP POST request. PubMLST does not permit personal `X-API-Key` credentials for POST
+requests. The full contemporary dataset therefore uses OAuth via the official
+`bigsdb-downloader` utility.
+
+### One-time setup on the login node
+
+In your PubMLST/BIGSdb profile, obtain an **OAuth client key and client secret**
+(they are distinct from the simple personal API key). Then run:
+
+```bash
+mkdir -p ~/.bigsdb_tokens
+
+bigsdb-downloader \
+  --key_name PubMLST \
+  --site PubMLST \
+  --db pubmlst_campylobacter_isolates \
+  --token_dir ~/.bigsdb_tokens \
+  --setup
+```
+
+The program will ask for the client key and secret, give you an authorization URL,
+and then ask for the verifier code shown after you authorize the client in PubMLST.
+It stores the resulting access token under `~/.bigsdb_tokens`. Session tokens are
+renewed automatically.
+
+Do not place keys, secrets or token files in this repository.
+
+## Recommended first job
+
+After OAuth setup succeeds:
 
 ```bash
 sbatch hpc/01_pubmlst.sbatch
@@ -29,14 +55,23 @@ sbatch hpc/01_pubmlst.sbatch
 
 This creates:
 
-- `data/pubmlst_st10042_all.tsv` — all current ST10042 metadata returned by PubMLST
+- `data/pubmlst_st10042_all.tsv` — all current authenticated ST10042 metadata
 - `data/pubmlst_st10042_all.json` — full selected PubMLST records
-- `data/pubmlst_st10042_assemblies/` — all retrievable ST10042 PubMLST contig FASTAs
+- `data/pubmlst_st10042_assemblies/` — retrievable PubMLST ST10042 contig FASTAs
 - `data/peru_st10042_current.tsv` — focal Peru subset
 - `data/peru_st10042_current.json` — full Peru records
 
-The exploratory query used to start the project contained 23 confirmed Peru ST10042
-records (16 Lima, 7 Iquitos). Treat that as a checkpoint rather than a hard-coded filter.
+Anonymous mode remains available for diagnostics:
+
+```bash
+python scripts/01_query_pubmlst_st10042.py \
+  --auth anonymous \
+  --out data/pubmlst_st10042_public.tsv \
+  --json-out data/pubmlst_st10042_public.json
+```
+
+Do not use the anonymous result as the final global dataset because contemporary
+records may be hidden by PubMLST's access policy.
 
 ## Resolve the Azevedo European reads
 
@@ -44,5 +79,5 @@ records (16 Lima, 7 Iquitos). Treat that as a checkpoint rather than a hard-code
 sbatch hpc/02_resolve_ena.sbatch
 ```
 
-That job only resolves the 217 published read accessions. We can download/assemble
-them after checking that the manifest reproduces the paper before moving to cgMLST.
+That job resolves the 217 published read accessions. We can download/assemble them
+after checking that the manifest reproduces the paper before moving to cgMLST.
