@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """Query PubMLST/BIGSdb for current Campylobacter coli ST10042 records.
 
-Authentication
---------------
-PubMLST requires authentication to access records added after 31 Dec 2024.
-Create a personal API key in your PubMLST/BIGSdb profile and export it as:
+Full contemporary PubMLST searches require OAuth because isolate searches use
+HTTP POST and PubMLST does not permit personal API keys for POST requests.
 
-    export PUBMLST_API_KEY='...'
+One-time OAuth setup (interactive, on the login node):
 
-The key is sent as the X-API-Key header on search, record, and FASTA requests.
+    bigsdb-downloader \
+      --key_name PubMLST \
+      --site PubMLST \
+      --db pubmlst_campylobacter_isolates \
+      --token_dir ~/.bigsdb_tokens \
+      --setup
+
+The setup asks for the PubMLST OAuth client key and client secret, then opens an
+authorization step and stores the resulting access token outside this repository.
+Subsequent runs obtain/renew short-lived session tokens automatically.
 """
 
 import argparse
@@ -16,22 +23,15 @@ import csv
 import json
 import os
 import re
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 import requests
 
 DB = "https://rest.pubmlst.org/db/pubmlst_campylobacter_isolates"
 SEARCH = f"{DB}/isolates/search?return_all=1"
-
-
-def auth_headers(json_content=False):
-    headers = {}
-    if json_content:
-        headers["Content-Type"] = "application/json"
-    key = os.environ.get("PUBMLST_API_KEY", "").strip()
-    if key:
-        headers["X-API-Key"] = key
-    return headers
 
 
 def pick(d, *names):
@@ -46,37 +46,118 @@ def isolate_id(url):
     return int(m.group(1)) if m else ""
 
 
+def oauth_fetch(url, method="GET", json_body=None, key_name="PubMLST", token_dir=None):
+    """Fetch a BIGSdb resource using the official OAuth-aware downloader."""
+    exe = shutil.which("bigsdb-downloader")
+    if not exe:
+        raise SystemExit(
+            "ERROR: bigsdb-downloader is not installed. "
+            "Run: conda env update -f environment.yml"
+        )
+
+    token_dir = Path(token_dir or "~/.bigsdb_tokens").expanduser()
+    if not token_dir.exists():
+        raise SystemExit(
+            f"ERROR: OAuth token directory does not exist: {token_dir}\n"
+            "Run the one-time bigsdb-downloader --setup command first."
+        )
+
+    fd, tmp_name = tempfile.mkstemp(prefix="bigsdb_", suffix=".out")
+    os.close(fd)
+    tmp = Path(tmp_name)
+
+    cmd = [
+        exe,
+        "--key_name", key_name,
+        "--site", "PubMLST",
+        "--token_dir", str(token_dir),
+        "--cron",
+        "--url", url,
+        "--output_file", str(tmp),
+    ]
+    if method.upper() == "POST":
+        cmd += ["--method", "POST", "--json_body", json.dumps(json_body or {})]
+
+    try:
+        p = subprocess.run(cmd, text=True, capture_output=True)
+        if p.returncode != 0:
+            detail = (p.stderr or p.stdout or "").strip()
+            raise SystemExit(
+                "ERROR: authenticated PubMLST request failed via "
+                f"bigsdb-downloader (exit {p.returncode}).\n{detail}"
+            )
+        return tmp.read_text(encoding="utf-8")
+    finally:
+        try:
+            tmp.unlink()
+        except FileNotFoundError:
+            pass
+
+
+def anonymous_fetch(url, method="GET", json_body=None):
+    """Anonymous mode for public/pre-policy data only."""
+    if method.upper() == "POST":
+        r = requests.post(
+            url,
+            headers={"Content-Type": "application/json"},
+            json=json_body or {},
+            timeout=120,
+        )
+    else:
+        r = requests.get(url, timeout=120)
+    r.raise_for_status()
+    return r.text
+
+
+def fetch(url, method, json_body, auth, key_name, token_dir):
+    if auth == "oauth":
+        return oauth_fetch(
+            url,
+            method=method,
+            json_body=json_body,
+            key_name=key_name,
+            token_dir=token_dir,
+        )
+    return anonymous_fetch(url, method=method, json_body=json_body)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--country")
     p.add_argument("--out", default="pubmlst_st10042.tsv")
     p.add_argument("--json-out", default="pubmlst_st10042_records.json")
     p.add_argument("--download-contigs")
+    p.add_argument(
+        "--auth",
+        choices=["oauth", "anonymous"],
+        default="oauth",
+        help="OAuth is required for the complete contemporary dataset.",
+    )
+    p.add_argument(
+        "--oauth-key-name",
+        default=os.environ.get("PUBMLST_KEY_NAME", "PubMLST"),
+    )
+    p.add_argument(
+        "--oauth-token-dir",
+        default=os.environ.get("PUBMLST_TOKEN_DIR", "~/.bigsdb_tokens"),
+    )
     a = p.parse_args()
 
-    if not os.environ.get("PUBMLST_API_KEY", "").strip():
+    if a.auth == "anonymous":
         print(
-            "WARNING: PUBMLST_API_KEY is not set. "
-            "Post-2024 records may be hidden by PubMLST access policy."
+            "WARNING: anonymous mode may omit records hidden by PubMLST's "
+            "current access policy. Do not use it for the final global dataset."
         )
 
-    session = requests.Session()
-
-    r = session.post(
+    search_text = fetch(
         SEARCH,
-        headers=auth_headers(json_content=True),
-        json={"scheme.1.ST": 10042},
-        timeout=120,
+        method="POST",
+        json_body={"scheme.1.ST": 10042},
+        auth=a.auth,
+        key_name=a.oauth_key_name,
+        token_dir=a.oauth_token_dir,
     )
-    if r.status_code == 401:
-        raise SystemExit(
-            "ERROR: PubMLST returned HTTP 401 Unauthorized. "
-            "PUBMLST_API_KEY is present but was not accepted. "
-            "Check/regenerate the personal API key in your PubMLST/BIGSdb profile, "
-            "then export the replacement key before rerunning."
-        )
-    r.raise_for_status()
-    result = r.json()
+    result = json.loads(search_text)
     urls = result.get("isolates", [])
     print(f"PubMLST returned {result.get('records', len(urls))} ST10042 records")
 
@@ -84,9 +165,16 @@ def main():
     selected_raw = []
 
     for n, url in enumerate(urls, 1):
-        rr = session.get(url, headers=auth_headers(), timeout=60)
-        rr.raise_for_status()
-        obj = rr.json()
+        obj = json.loads(
+            fetch(
+                url,
+                method="GET",
+                json_body=None,
+                auth=a.auth,
+                key_name=a.oauth_key_name,
+                token_dir=a.oauth_token_dir,
+            )
+        )
 
         prov = obj.get("provenance", {}) or {}
         iid = prov.get("id") or isolate_id(url)
@@ -96,7 +184,6 @@ def main():
             continue
 
         selected_raw.append(obj)
-
         row = {
             "pubmlst_id": iid,
             "isolate": pick(prov, "isolate", "isolate_name", "strain", "strain_id"),
@@ -116,13 +203,16 @@ def main():
         if a.download_contigs:
             d = Path(a.download_contigs)
             d.mkdir(parents=True, exist_ok=True)
-            fa = session.get(
+            fasta = fetch(
                 f"{DB}/isolates/{iid}/contigs_fasta?header=original_designation",
-                headers=auth_headers(),
-                timeout=120,
+                method="GET",
+                json_body=None,
+                auth=a.auth,
+                key_name=a.oauth_key_name,
+                token_dir=a.oauth_token_dir,
             )
-            if fa.ok and fa.text.startswith(">"):
-                (d / f"{iid}.fasta").write_text(fa.text, encoding="utf-8")
+            if fasta.startswith(">"):
+                (d / f"{iid}.fasta").write_text(fasta, encoding="utf-8")
 
         if n % 25 == 0:
             print(f"Visited {n}/{len(urls)} returned records")
