@@ -5,8 +5,12 @@
 #SBATCH --time=04:00:00
 #SBATCH --output=st10042_pubmlst-%j.out
 
-set -euo pipefail
+# Do not enable nounset until after the site/login bash configuration has loaded.
+# Puma's /etc/bashrc references BASHRCSOURCED before defining it, which fails under set -u.
+set -eo pipefail
 source ~/.bashrc
+set -u
+
 conda activate st10042
 
 : "${PUBMLST_API_KEY:?Set PUBMLST_API_KEY before submitting the job}"
