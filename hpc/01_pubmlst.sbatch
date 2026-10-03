@@ -4,16 +4,33 @@
 #SBATCH --mem=4G
 #SBATCH --time=04:00:00
 #SBATCH --output=st10042_pubmlst-%j.out
+#SBATCH --error=st10042_pubmlst-%j.err
 
-# Do not enable nounset until after the site/login bash configuration has loaded.
-# Puma's /etc/bashrc references BASHRCSOURCED before defining it, which fails under set -u.
 set -eo pipefail
-source ~/.bashrc
+
+echo "ST10042 PubMLST job starting"
+echo "date: $(date)"
+echo "host: $(hostname)"
+echo "workdir: $(pwd)"
+echo "conda env: ${CONDA_DEFAULT_ENV:-<not set>}"
+echo "python: $(command -v python || true)"
+
+# sbatch inherits the submitting shell environment by default on Puma.
+# Submit this job from an activated 'st10042' environment; this avoids sourcing
+# Puma's /etc/bashrc inside the batch shell.
+if [[ "${CONDA_DEFAULT_ENV:-}" != "st10042" ]]; then
+  echo "ERROR: activate the st10042 conda environment before sbatch." >&2
+  exit 2
+fi
+
+if [[ -z "${PUBMLST_API_KEY:-}" ]]; then
+  echo "ERROR: PUBMLST_API_KEY is not exported into the sbatch environment." >&2
+  echo "Run: export PUBMLST_API_KEY='...' before sbatch." >&2
+  exit 2
+fi
+echo "PubMLST API key: present"
+
 set -u
-
-conda activate st10042
-
-: "${PUBMLST_API_KEY:?Set PUBMLST_API_KEY before submitting the job}"
 
 # Current global ST10042 population + all available PubMLST assemblies.
 python scripts/01_query_pubmlst_st10042.py \
