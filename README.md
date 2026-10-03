@@ -77,6 +77,14 @@ The exploratory query used to start this project contained 23 confirmed Peru ST1
 records (16 Lima, 7 Iquitos). This count is a validation checkpoint only: the analysis
 always uses the live PubMLST query rather than hard-coding those isolates.
 
+## Initial exploratory analysis
+
+The analysis that motivated this project is preserved in
+[`docs/craig_initial_analysis.md`](docs/craig_initial_analysis.md). It summarises
+Craig's initial 40-genome FastTree analysis, including the 23 Peru ST10042 genomes,
+the early Peru/European intermixing signal, the preliminary AMR observations and
+the interpretation limits of that tree.
+
 ## Reproducibility checkpoint
 
 Before interpreting the expanded global dataset, reproduce the published European result:
