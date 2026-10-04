@@ -1,9 +1,17 @@
 # Analysis plan: global *Campylobacter coli* ST10042
 
-## Primary question
-Where do the Peru ST10042 genomes sit within the current global ST10042 population,
-and specifically relative to the European multidrug-resistant lineage described by
-Azevedo et al. (2026)?
+## Biological questions
+
+1. **Are the Peru ST10042 isolates part of the same genomic lineage as the European
+   isolates described by Azevedo et al. (2026)?**
+2. **When did that lineage emerge?**
+3. **Where did it most likely emerge, geographically and by source reservoir?**
+4. **Are the Peru isolates also multidrug resistant, and are they associated with
+   diarrhoeal disease rather than asymptomatic carriage in children?**
+
+The immediate technical objective is to define the lineage robustly using current
+PubMLST cgMLST v2 + LINcodes. Temporal, geographic/source and clinical inference
+comes only after that genomic definition is established.
 
 ## Stage 1 — published reference and current sequence inventory
 1. Start with the 217 Azevedo isolates in `data/europe_217_manifest.tsv`.
@@ -128,9 +136,12 @@ The 41-record PubMLST snapshot contains 40 assemblies; the sole no-contig record
 public Azevedo run. All 32 PubMLST-only records remaining after exact-ID
 de-duplication therefore have sequence.
 
-This yields a **currently sequence-accessible candidate set of 143 isolates before
-cgMLST QC**: 111 Azevedo + 32 PubMLST-only additions. This includes all 23 Peru
-focal isolates and 23 published cluster-21 anchors.
+The ENA inventory initially yielded 111 nominally resolved Azevedo runs. A later
+file-level check showed that DK-2 (ERR10702984) has no FASTQ files, leaving **110
+assembly-ready Azevedo isolates**. Together with the 32 PubMLST-only additions,
+this yields a **currently sequence-accessible candidate set of 142 genomes before
+cgMLST QC**. This includes all 23 Peru focal isolates and the currently accessible
+published cluster-21 anchors.
 
 Do not interpret distance from the 23 accessible cluster-21 anchors as a complete
 negative test of cluster-21 membership, because 21/44 published members are
