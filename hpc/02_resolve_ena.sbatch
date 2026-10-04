@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --account=cooperma
 #SBATCH --job-name=st10042_ena
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
