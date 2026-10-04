@@ -8,6 +8,8 @@ Purpose:
 
 The BIGSdb scheme sequence endpoint is exact-match based. Therefore this is a
 validation/pilot step, not yet the final solution for genuinely novel alleles.
+A locus with multiple exact allele hits is recorded as ambiguous but is NOT
+equated with a missing locus or automatic cgMLST failure.
 Requests are sequential to avoid unnecessary load on PubMLST.
 """
 
@@ -152,7 +154,8 @@ def main():
             "ambiguous_loci":len(ambiguous),
             "missing_exact_loci":len(missing),
             "exact_call_fraction":len(unique)/len(known_loci) if known_loci else "",
-            "passes_25_missing_on_exact_calls":"Yes" if len(missing)<=25 and len(ambiguous)==0 else "No",
+            "within_25_loci_without_exact_hit":"Yes" if len(missing)<=25 else "No",
+            "all_exact_hit_loci_unambiguous":"Yes" if len(ambiguous)==0 else "No",
             "official_cgST_v2":off.get("cgST_v2",""),
             "official_LINcode_v2":off.get("LINcode_v2",""),
             "official_Cjc_cgc2_5":off.get("Cjc_cgc2_5",""),
@@ -179,7 +182,7 @@ def main():
         cols=[
             "azevedo_strain_id","pubmlst_id","published_cluster",
             "exact_loci_any","unique_exact_loci","ambiguous_loci","missing_exact_loci",
-            "passes_25_missing_on_exact_calls","official_cgST_v2",
+            "within_25_loci_without_exact_hit","all_exact_hit_loci_unambiguous","official_cgST_v2",
             "official_Cjc_cgc2_5","official_LINcode_v2"
         ]
         print(out[cols].to_string(index=False))
