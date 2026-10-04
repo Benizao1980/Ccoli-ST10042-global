@@ -11,3 +11,5 @@ dependencies:
   - quast
   - seqkit
   - pigz
+  - bowtie2
+  - samtools
