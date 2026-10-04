@@ -39,6 +39,16 @@ The analysis is organised around four questions.
    will then test whether lineage membership and/or AMR genotype are associated with
    diarrhoeal disease rather than asymptomatic carriage.
 
+## Initial exploratory analysis
+
+The analysis that motivated this project is preserved in
+[`docs/craig_initial_analysis.md`](docs/craig_initial_analysis.md). It summarises
+Craig's initial 40-genome FastTree analysis, including the 23 Peru ST10042 genomes,
+the early Peru/European intermixing signal, preliminary AMR observations, and the
+interpretation limits of that tree. It is retained as the exploratory starting point;
+the current analysis replaces those preliminary phylogenetic comparisons with
+quality-controlled cgMLST v2/LIN analysis.
+
 ## What we have done, and why
 
 ### 1. Reconstructed the published European reference set
