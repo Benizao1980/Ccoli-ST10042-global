@@ -223,6 +223,34 @@ where and in which reservoir it most plausibly emerged, how it spread, whether t
 Peru population belongs to the same expansion, and whether that population is
 clinically important in children.**
 
+## Full cgMLST-v2 exact-hit QC checkpoint
+
+The sequential scheme-8 screen has now completed for all **110 filtered Azevedo
+assemblies**:
+
+| QC result | N |
+|---|---:|
+| Genomes queried | 110 |
+| <=25 loci without an exact known PubMLST allele hit | **105** |
+| >25 loci without an exact known allele hit | **5** |
+| Zero ambiguous exact-hit loci | **106** |
+| One or more ambiguous loci | **4** |
+
+The five genomes above the 25-locus diagnostic threshold are **UK-4 (87), UK-6
+(66), UK-2 (53), PT-41 (43) and PT-58 (28)**. The three UK genomes are the same
+poor assemblies excluded from Azevedo Figure 4. PT-41 and PT-58 have zero ambiguous
+loci and therefore remain under review until full allele calling distinguishes
+genuine novel alleles from missing loci.
+
+Crucially, **all 23 currently accessible published cluster-21 genomes are clean at
+this checkpoint**: each has only 1–10 loci without an exact known-allele hit and
+none has an ambiguous exact-hit locus. This gives a strong reference set for the
+Peru comparison.
+
+The next step is to freeze the current PubMLST scheme-8 allele definitions/profiles
+and perform full allele calling so genuine novel alleles are not misclassified as
+missing data.
+
 ## Planned downstream analyses
 
 Once the current cgMLST-v2/LIN dataset is finalised, the project will move through
