@@ -1,0 +1,11 @@
+name: st10042-assembly
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - fastp
+  - spades
+  - unicycler
+  - quast
+  - seqkit
+  - pigz
