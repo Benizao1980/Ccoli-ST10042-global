@@ -1,0 +1,8 @@
+name: st10042-linwalker
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - git+https://github.com/Benizao1980/LINwalker.git@5b4c5f5eb167343f1357c66ea549f4d696845b31
