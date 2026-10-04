@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --account=cooperma
 #SBATCH --job-name=st10042_pubmlst
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
