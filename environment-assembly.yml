@@ -4,6 +4,7 @@ channels:
   - bioconda
 dependencies:
   - python=3.10
+  - pandas
   - fastp
   - spades
   - unicycler
