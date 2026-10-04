@@ -147,3 +147,36 @@ bash hpc/submit_spades.sh
 
 The submission wrappers calculate the array size from
 `results/azevedo_spades_manifest.tsv`; they do not hard-code 110 samples.
+
+
+## Coverage-filter the full Azevedo set
+
+The nine-isolate validation pilot showed that the INNUca-like post-assembly
+coverage filter removes duplicate low-depth assembly fragments from usable genomes
+while leaving the genuinely poor UK-2/UK-4/UK-6 samples clearly poor.
+
+Scale the validated filter to every paired Azevedo assembly:
+
+```bash
+conda activate st10042-assembly
+bash hpc/submit_azevedo_filter.sh
+```
+
+The wrapper derives the array size from
+`results/azevedo_spades_manifest.tsv` and runs at most 10 tasks concurrently.
+
+After the array completes:
+
+```bash
+conda activate st10042
+python scripts/23_summarise_azevedo_innuca_like.py
+```
+
+Filtered FASTAs are written under
+`data/europe_assemblies_innuca_like_trimmed/<Strain_ID>/contigs.innuca_like.fasta`.
+Each sample also has `qc.json` and `contig_coverage.tsv`. Mapping BAM/index files
+are deleted after successful filtering to avoid retaining unnecessary intermediate
+data.
+
+Do **not** put PubMLST REST calls inside the Slurm array. Scheme-8 typing/QC is the
+next, separate step and should be performed at controlled request concurrency.
