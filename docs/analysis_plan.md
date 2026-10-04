@@ -578,3 +578,51 @@ Primary next step:
 
 `scripts/32_package_pubmlst_genome_comparator.py` prepares the upload archive,
 metadata and current ST10042 anchor-ID list.
+
+
+## Genome Comparator + LINwalker reference-placement checkpoint (2026-10-05)
+
+The primary current-v2 workflow is now:
+
+1. **PubMLST Genome Comparator** calls the 1,142 scheme-8 loci for the 110 uploaded
+   filtered Azevedo assemblies and the 40 current PubMLST ST10042 genomes with
+   contigs in the same comparison.
+2. The current PubMLST genomes retain their official cgST, LINcode and
+   `Cjc_cgc2_*` annotations and act as labelled reference anchors.
+3. **LINwalker 1.1.0** parses the Genome Comparator `all` worksheet and calculates
+   query-to-reference allele differences using the same missing-data scaling used by
+   BIGSdb LINcode assignment:
+   `normalised AD = raw differences × total loci / shared called loci`.
+4. At each native LIN difference threshold
+   (`1119,1085,982,914,857,680,445,343,183,86,43,10,7,5,3,2,1,0`),
+   LINwalker reports whether all qualifying labelled references support the same
+   existing LIN prefix. It stops at ambiguity rather than minting a new suffix.
+5. The same conservative logic is applied to the official
+   `Cjc_cgc2_200/100/50/25/10/5` groups. If references from different groups are
+   within the threshold, the result is labelled ambiguous.
+6. ST and clonal complex are retained as official/reference context rather than
+   inferred from LIN distance. An exact cgST is reported only when the uploaded
+   profile is a complete zero-distance match to one official reference cgST.
+
+LINwalker therefore functions as a **reference-placement/harmonisation layer around
+PubMLST**, not as a competing nomenclature system. Local statuses include
+`EXACT_REFERENCE_PROFILE`, `SUPPORTED_PREFIX` and `UNRESOLVED`.
+
+The project pins the tested LINwalker commit in `environment-linwalker.yml`.
+GitHub Actions passed the new 18-level placement, ST/CC context, exact-cgST and
+BIGSdb uploaded-genome label tests.
+
+Use:
+
+- `scripts/32_package_pubmlst_genome_comparator.py` to prepare the upload archive
+  and the 40 reference anchors;
+- `docs/pubmlst_genome_comparator_linwalker.md` for the PubMLST UI workflow;
+- `scripts/34_run_linwalker_placement.sh` after downloading the Genome Comparator
+  Excel workbook;
+- `scripts/33_summarise_linwalker_placement.py` to join placement results to
+  Azevedo cluster labels and summarise how published cluster 21 maps onto the current
+  LIN/cgc2 hierarchy.
+
+The first required validation on a real Genome Comparator workbook is the
+`reference_label_map.tsv`: every database anchor included in the comparison must
+map unambiguously to its PubMLST ID before biological interpretation.
