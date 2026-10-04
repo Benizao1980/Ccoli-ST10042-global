@@ -4,7 +4,7 @@ This project asks whether the *C. coli* ST10042 isolates we have found in Peru a
 part of the same emerging lineage reported recently in Europe, and what the wider
 evolutionary, ecological and clinical history of that lineage is.
 
-The European reference is Azevedo et al. (2026), who described an emerging
+The European reference is [Azevedo et al. (2026), *Multisectoral Emergence of Multidrug-Resistant Campylobacter coli Sequence Type 10042 Lineage, Europe, 2018–2025*](https://wwwnc.cdc.gov/eid/article/32/10/26-0512_article), who described an emerging
 multidrug-resistant ST10042 lineage in nine European countries. We are combining
 that published dataset with the current PubMLST ST10042 population and our Peru
 isolates from Lima and Iquitos.
