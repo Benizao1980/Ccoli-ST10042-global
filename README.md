@@ -223,6 +223,23 @@ where and in which reservoir it most plausibly emerged, how it spread, whether t
 Peru population belongs to the same expansion, and whether that population is
 clinically important in children.**
 
+## Planned downstream analyses
+
+Once the current cgMLST-v2/LIN dataset is finalised, the project will move through
+five linked analyses:
+
+| Analysis | Main tool / framework | Main question |
+|---|---|---|
+| LINcode export + allele distances | PubMLST cgMLST v2 / LIN | Which Peru genomes belong to the same genomic lineage as the European expansion? |
+| Pangenome | Panaroo | What core/accessory gene-content differences distinguish sublineages, countries and sources? |
+| AMR | AMRFinderPlus + targeted variant checks | Do Peru isolates carry the same MDR backbone and regulatory variants as the European lineage? |
+| Virulence | VFDB-based screen | Do Peru sublineages differ in virulence-gene content or gene integrity? |
+| Recombination + dating | Gubbins → temporal-signal tests → BactDating/clock sensitivity analysis | What is the clonal history, when did the lineage emerge, and can individual subclusters be dated? |
+
+Dating will only be attempted after recombination masking and a formal temporal-signal
+test. Geographic and source-reservoir origin will then be reconstructed on the
+recombination-aware dated lineage, with sampling bias explicitly considered.
+
 ## Important interpretation limits
 
 ST10042 by itself does not establish recent shared ancestry. Likewise, a FastTree
