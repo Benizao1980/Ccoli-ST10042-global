@@ -1,9 +1,10 @@
+#SBATCH --mem-per-cpu=4G
 #!/bin/bash
 #SBATCH --account=cooperma
+#SBATCH --partition=standard
 #SBATCH --job-name=st10042_pubmlst
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=5gb
 #SBATCH --time=06:00:00
 #SBATCH --output=st10042_pubmlst-%j.out
 #SBATCH --error=st10042_pubmlst-%j.err
