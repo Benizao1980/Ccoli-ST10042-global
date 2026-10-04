@@ -303,5 +303,15 @@ results cannot be silently reused.
 
 The raw-read pilot remains useful evidence: after coverage filtering, LU-11,
 ES-1, UK-1, UK-3 and UK-7 all had zero ambiguous scheme-8 loci and UK-5 had one;
-UK-2/UK-4/UK-6 remained poor. However, scale-up to all 110 genomes should only
-proceed after the corrected trimmed-read pilot reproduces that pattern.
+UK-2/UK-4/UK-6 remained poor.
+
+The **corrected trimmed-read pilot has now reproduced the same pattern**. LU-11,
+ES-1, UK-1, UK-3 and UK-7 have zero ambiguous scheme-8 loci; UK-5 has one.
+UK-7, the key published cluster-21 anchor, has 1,139/1,142 loci with exact hits,
+all 1,139 uniquely called, and only 3 loci without an exact hit. UK-2, UK-4 and
+UK-6 remain above the PubMLST v2 `max_missing=25` completeness threshold
+(53, 87 and 66 loci without an exact hit, respectively), matching their poor
+assembly profiles and published Figure-4 exclusion.
+
+This validates the INNUca-like coverage-filtering strategy for scale-up to all 110
+accessible Azevedo read sets.
