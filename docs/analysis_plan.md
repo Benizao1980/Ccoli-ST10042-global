@@ -64,3 +64,15 @@ records become public/retrievable or an alternative public sequence source is fo
 
 Use `scripts/07_diagnose_ena_availability.py` to quantify the effect by BioProject,
 country and published cluster (especially cluster 21).
+
+
+### Assembly rescue step
+
+Because ENA raw-read and assembly records are separate archive domains, query the
+assembly domain for studies represented among the 106 unresolved runs before
+concluding that those genomes are inaccessible. Use
+`scripts/08_probe_unresolved_assemblies.py`.
+
+Any assembly recovered this way should be matched back to an Azevedo isolate using
+stable exact identifiers (run reference, strain/ENA identifier) before use. Do not
+infer a match solely from country/year or approximate names.
