@@ -277,3 +277,20 @@ coverage >=2, Bowtie2 very-sensitive-local mapping, then the same dynamic mapped
 coverage threshold. It then re-queries PubMLST scheme 8. This is deliberately
 described as INNUca-like rather than an exact reconstruction because our trimming
 and software versions differ from the published pipeline.
+
+
+#### Trimmed-read correction
+
+The first successful INNUca-like overlap pilot strongly removed duplicate allele
+hits, but inspection of the pilot code found that the mapping step used the raw
+downloaded ENA FASTQs from the manifest rather than the fastp-trimmed pairs that
+were actually supplied to SPAdes. INNUca itself updates `fastq_files` to its
+trimmed paired reads before the assembly-mapping step. The pilot has therefore
+been corrected to map `data/europe_trimmed/<sample>/<sample>_R1/R2.fastq.gz`
+and writes to a new versioned output directory/cache so the previous raw-read
+results cannot be silently reused.
+
+The raw-read pilot remains useful evidence: after coverage filtering, LU-11,
+ES-1, UK-1, UK-3 and UK-7 all had zero ambiguous scheme-8 loci and UK-5 had one;
+UK-2/UK-4/UK-6 remained poor. However, scale-up to all 110 genomes should only
+proceed after the corrected trimmed-read pilot reproduces that pattern.
