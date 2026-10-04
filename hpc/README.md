@@ -180,3 +180,41 @@ data.
 
 Do **not** put PubMLST REST calls inside the Slurm array. Scheme-8 typing/QC is the
 next, separate step and should be performed at controlled request concurrency.
+
+
+## Prepare the frozen cgMLST-v2 schema for chewBBACA
+
+After the scheme-8 snapshot completes, rebuild the 142-genome input manifest with
+unique FASTA basenames. This is required because chewBBACA identifies genomes from
+the FASTA basename; the original Azevedo filtered files are all named
+`contigs.innuca_like.fasta`.
+
+```bash
+conda activate st10042
+python scripts/26_prepare_cgmlst_v2_input.py
+```
+
+This creates symlinks such as `AZE_PT-7.fasta` and `PUB_149884.fasta` under
+`data/cgmlst_v2_inputs/` without copying the assemblies.
+
+Create/update the dedicated allele-calling environment:
+
+```bash
+conda env create -f environment-cgmlst.yml
+# for an existing environment instead:
+# conda env update -f environment-cgmlst.yml
+conda activate st10042-cgmlst
+```
+
+Adapt the frozen PubMLST external schema:
+
+```bash
+bash hpc/submit_prepare_chewbbaca_schema.sh
+```
+
+The job trains Prodigal reproducibly on the clean UK-7 assembly and then runs
+chewBBACA 3.5.4 `PrepExternalSchema` using BSR 0.6, translation table 11 and
+size-threshold metadata 0.2. It intentionally does **not** apply `--size-filter`;
+valid PubMLST alleles are not discarded solely for deviating from the modal locus
+length. The job finishes by requiring all 1,142 loci to survive adaptation before
+allele calling is allowed to proceed.
