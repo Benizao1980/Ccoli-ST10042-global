@@ -87,7 +87,7 @@ def _fields_from_json(data):
             if isinstance(item, str):
                 fields.add(item)
             elif isinstance(item, dict):
-                for key in ("fieldName", "name", "id"):
+                for key in ("columnId", "fieldName", "name", "id"):
                     if item.get(key):
                         fields.add(str(item[key]))
                         break
@@ -103,7 +103,7 @@ def _fields_from_text(text):
     fields = set()
     header_tokens = {
         "field", "fieldname", "field_name", "name", "id",
-        "description", "type", "searchfield", "returnfield",
+        "description", "type", "searchfield", "returnfield", "columnid",
     }
     for raw in text.splitlines():
         line = raw.strip()
