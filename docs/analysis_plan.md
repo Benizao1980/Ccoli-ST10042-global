@@ -546,3 +546,35 @@ The population-structure analysis is now explicitly **PubMLST-first**.
 
 This avoids creating a parallel local classification when PubMLST already provides
 the authoritative current cgMLST-v2 and LIN hierarchy.
+
+
+## PubMLST mapping checkpoint: direct REST profile resolution (2026-10-04)
+
+The direct scheme-8 REST profile lookup is much more restrictive than a full
+Genome Comparator analysis. Among 110 Azevedo assemblies, the exact-known
+designations returned:
+
+- 108 genomes with no profile resolved from the available exact-known calls;
+- 1 genome compatible with one current official profile;
+- 1 genome compatible with two current official profiles.
+
+These results must **not** be described as 108 genomes lacking a PubMLST profile.
+Most assemblies have one or more loci without an exact-known allele hit, and BIGSdb
+cannot resolve a unique cgST from those incomplete designations unless the stored
+profile itself permits the corresponding missing values.
+
+The chewBBACA overlap pilot also demonstrated that adapted external-schema allele
+IDs are not perfectly PubMLST-identical (252 numeric ID mismatches among 9 overlap
+controls). Therefore chewBBACA will not be used to generate the primary PubMLST
+nomenclature.
+
+Primary next step:
+- package the 110 filtered Azevedo FASTAs with unique names;
+- run them through **PubMLST Genome Comparator using cgMLST v2 / scheme 8**;
+- include/select current ST10042 PubMLST genomes as LIN-coded anchors where possible;
+- use the resulting PubMLST allele-distance relationships to place uploaded Azevedo
+  genomes relative to official cgST/LIN groups;
+- reserve "official LINcode" for profiles actually assigned in PubMLST.
+
+`scripts/32_package_pubmlst_genome_comparator.py` prepares the upload archive,
+metadata and current ST10042 anchor-ID list.
