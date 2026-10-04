@@ -527,3 +527,22 @@ The next validation job is `hpc/10_chewbbaca_overlap_pilot.sbatch`. It compares
 chewBBACA numeric allele IDs directly with the unique exact allele IDs returned by
 the PubMLST scheme-8 REST endpoint for the same filtered assemblies. Scale-up to
 all 142 genomes should proceed only if those known allele IDs are preserved.
+
+
+## PubMLST-first correction to the cgMLST workflow (2026-10-04)
+
+The population-structure analysis is now explicitly **PubMLST-first**.
+
+1. Query each Azevedo assembly against the live/current PubMLST scheme 8.
+2. Where BIGSdb resolves a single existing cgST, fetch that PubMLST profile and
+   export its official LINcode plus `Cjc_cgc2_200/100/50/25/10/5` groups.
+3. Validate exact Azevedo/PubMLST overlap records against their already-known
+   official cgST/LINcode.
+4. For genomes with no exact existing profile (or multiple compatible profiles),
+   use PubMLST nearest-profile / Genome Comparator analysis next.
+5. Use the frozen scheme + chewBBACA only to characterise genuinely novel alleles
+   or otherwise unresolved genomes. It is not the source of the primary lineage
+   nomenclature.
+
+This avoids creating a parallel local classification when PubMLST already provides
+the authoritative current cgMLST-v2 and LIN hierarchy.
