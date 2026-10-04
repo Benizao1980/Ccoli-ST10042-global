@@ -26,6 +26,7 @@ def main():
     p.add_argument("--aze-qc",default="results/pubmlst_v2_all_azevedo_exact_qc.tsv")
     p.add_argument("--aze-dir",default="data/europe_assemblies_innuca_like_trimmed")
     p.add_argument("--pub-dir",default="data/pubmlst_st10042_assemblies")
+    p.add_argument("--input-dir",default="data/cgmlst_v2_inputs")
     p.add_argument("--out",default="results/cgmlst_v2_input_manifest.tsv")
     p.add_argument("--list-out",default="results/cgmlst_v2_input_fastas.txt")
     a=p.parse_args()
@@ -99,15 +100,38 @@ def main():
     if missing:
         raise SystemExit("ERROR missing FASTAs:\n" + "\n".join(f"{x}\t{p}" for x,p in missing))
 
+    # chewBBACA identifies genomes by FASTA basename. The Azevedo source files all
+    # have the basename "contigs.innuca_like.fasta", so create stable unique-name
+    # symlinks rather than passing the source paths directly.
+    idir=Path(a.input_dir)
+    idir.mkdir(parents=True,exist_ok=True)
+    link_paths=[]
+    for i,r in out.iterrows():
+        src=Path(r["fasta"]).resolve()
+        link=idir/f"{r['analysis_id']}.fasta"
+        if link.exists() or link.is_symlink():
+            if link.resolve()!=src:
+                link.unlink()
+        if not link.exists():
+            link.symlink_to(src)
+        link_paths.append(str(link.resolve() if False else link.absolute()))
+    out["chewbbaca_fasta"]=link_paths
+
+    # Guard against duplicate basenames, which chewBBACA does not permit.
+    basenames=[Path(x).stem for x in out["chewbbaca_fasta"]]
+    if len(basenames)!=len(set(basenames)):
+        raise SystemExit("ERROR duplicate chewBBACA input basenames")
+
     Path(a.out).parent.mkdir(parents=True,exist_ok=True)
     out.to_csv(a.out,sep="\t",index=False)
-    Path(a.list_out).write_text("\n".join(out["fasta"])+"\n",encoding="utf-8")
+    Path(a.list_out).write_text("\n".join(out["chewbbaca_fasta"])+"\n",encoding="utf-8")
 
     print(f"Azevedo filtered assemblies: {n_aze}")
     print(f"PubMLST-only assemblies: {n_pub}")
     print(f"Total cgMLST input genomes: {len(out)}")
     print(f"Peru focal genomes: {(out['peru_focal']=='Yes').sum()}")
     print(f"Published accessible cluster-21 anchors: {(out['published_cluster21']=='Yes').sum()}")
+    print(f"Unique-name chewBBACA symlinks: {a.input_dir}")
     print(f"Wrote: {a.out}")
     print(f"Wrote: {a.list_out}")
 
