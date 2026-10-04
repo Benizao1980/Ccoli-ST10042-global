@@ -114,3 +114,36 @@ Submit with:
 ```bash
 bash hpc/submit_pubmlst.sh
 ```
+
+
+## Download and assemble the accessible Azevedo reads
+
+Build the exact paired-read manifest:
+
+```bash
+python scripts/14_prepare_azevedo_spades_manifest.py
+```
+
+Create the separate assembly environment once:
+
+```bash
+conda env create -f environment-assembly.yml
+```
+
+Download all paired FASTQs with MD5 verification:
+
+```bash
+conda activate st10042
+bash hpc/submit_azevedo_download.sh
+```
+
+After the download array completes cleanly, assemble with conservative fastp
+preprocessing followed by SPAdes `--isolate`:
+
+```bash
+conda activate st10042-assembly
+bash hpc/submit_spades.sh
+```
+
+The submission wrappers calculate the array size from
+`results/azevedo_spades_manifest.tsv`; they do not hard-code 110 samples.
