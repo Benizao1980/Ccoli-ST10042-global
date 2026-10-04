@@ -60,6 +60,118 @@ Compare the Peru/global population for the lineage-defining markers reported by 
 - 23S rRNA macrolide resistance mutations
 - `cmeRABC`
 
+## Stage 5 — pangenome, AMR and virulence
+
+After final cgMLST-v2 QC/de-duplication, use one fixed genome set for comparative
+genomics so gene-content differences are not driven by assembly failures.
+
+### Pangenome
+
+1. Re-annotate all final assemblies consistently with the same annotation workflow.
+2. Run **Panaroo** on the common annotation set.
+3. Report:
+   - core, soft-core, shell and cloud gene counts;
+   - gene-presence/absence matrix;
+   - core-gene alignment;
+   - lineage-, country- and source-associated accessory genes;
+   - sensitivity of accessory-gene calls to the remaining fragmented assemblies.
+4. Overlay cgMLST/LIN groups, Azevedo cluster labels, country, source and Peru
+   epidemiological metadata onto the pangenome structure.
+
+Panaroo is used to characterise gene content, not to define the primary lineage:
+the main nomenclature remains PubMLST cgMLST v2 + LINcodes.
+
+### AMR
+
+Run **AMRFinderPlus** across the final assembly set, retaining both gene and point-
+mutation calls where supported. Then explicitly verify the resistance determinants
+highlighted by Azevedo et al.:
+
+- GyrA Thr86Ile;
+- `tet(O/32/O)` / `tet(O)`;
+- `blaOXA-61`;
+- 23S rRNA macrolide-resistance mutations;
+- `cmeRABC`.
+
+AMRFinderPlus alone should not be assumed to recover every regulatory variant of
+interest. Add targeted sequence checks for the `blaOXA-61` promoter -57G>T,
+promoter -69delA and any other lineage-defining non-coding variants that are not
+represented in the AMRFinderPlus catalogue.
+
+Summarise AMR by LIN group, published cluster, country, source and Peru child
+phenotype. Define MDR using the same antibiotic-class rule across all genomes.
+
+### Virulence
+
+Screen the same final genomes against **VFDB**, using a reproducible homology
+threshold and recording identity/coverage rather than only binary presence/absence.
+Confirm biologically important or borderline hits at protein level where needed.
+
+For a closely related ST10042 population, many canonical *Campylobacter* virulence
+genes may be core. Therefore also consider allelic variation, truncation/pseudogene
+status and accessory-gene context rather than interpreting simple presence/absence
+as a proxy for virulence.
+
+## Stage 6 — recombination-aware phylogenomics
+
+Recombination must be assessed before molecular-clock dating or directionality/origin
+inference.
+
+1. Define the final ST10042 analysis set and the focal cluster-21-related lineage
+   using cgMLST v2/LINcodes.
+2. Build a high-resolution core-genome/SNP alignment for the whole ST10042 set and,
+   separately, for the focal close lineage where reference-based alignment is most
+   defensible.
+3. Use **Gubbins** (and, if useful, ClonalFrameML as a sensitivity analysis) to:
+   - identify recombinant regions;
+   - estimate recombination burden (including r/m where supported);
+   - generate a recombination-masked clonal alignment/tree;
+   - identify recurrent recombination hotspots.
+4. Compare masked and unmasked topologies, especially for the four Lima 2023 animal
+   isolates, the Iquitos human group and other Peru source-associated subclusters.
+
+The pangenome tree and cgMLST/LIN structure provide complementary views; the
+recombination-masked phylogeny is the preferred basis for dating.
+
+## Stage 7 — temporal analysis and lineage dating
+
+Do not fit a molecular clock automatically.
+
+1. Use the recombination-masked tree/alignment to test temporal signal across the
+   whole focal lineage.
+2. Examine root-to-tip regression and perform date-randomisation/permutation tests.
+3. If temporal signal is adequate, estimate:
+   - substitution rate;
+   - TMRCA of the focal ST10042/cluster-21-related lineage;
+   - TMRCA of Peru-associated sublineages where the sampling dates contain enough
+     temporal spread and substitutions to support a separate estimate.
+4. Use **BactDating** as an efficient primary bacterial-dating framework, with a
+   second method (for example BEAST2 or another clock framework) for key sensitivity
+   analyses if warranted.
+5. Report uncertainty intervals and avoid dating subclusters sampled within only one
+   or two narrow time points.
+
+The European collection spans 2018–2025, but several Peru subgroups are concentrated
+in 2023–2025. Those short windows may be insufficient for independent subcluster
+dating even if the broader lineage contains usable temporal signal.
+
+## Stage 8 — geographic and source-reservoir history
+
+Only after the recombination-aware dated lineage is established, reconstruct
+geographic and source history.
+
+- Treat country and source reservoir as separate discrete traits.
+- Compare ancestral-state support rather than assigning an origin from the oldest
+  sampled genome.
+- Explicitly account for the strong surveillance imbalance and the 107 Azevedo
+  genomes that are not currently sequence-accessible.
+- Where appropriate, combine phylogenetic ancestral-state reconstruction with
+  source-attribution models rather than relying on one method.
+
+The desired outputs are estimates of the most plausible ancestral geography/source
+states and the timing of major transitions, with uncertainty and sampling bias made
+explicit.
+
 ## Interpretation guardrails
 The seven-locus ST alone does not prove membership of the European MDR epidemic lineage.
 FastTree topology alone should not be used to infer direction of transmission or a single
