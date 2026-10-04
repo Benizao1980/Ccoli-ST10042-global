@@ -1,113 +1,193 @@
 # Global population genomics of *Campylobacter coli* ST10042
 
-This repository reproduces the 2026 Azevedo et al. European ST10042 analysis and
-extends it to **all current PubMLST ST10042 genomes**, with a focal analysis of the
-Peru population (Lima and Iquitos).
+This project asks whether the *C. coli* ST10042 isolates we have found in Peru are
+part of the same emerging lineage reported recently in Europe, and what the wider
+evolutionary, ecological and clinical history of that lineage is.
 
-## Core questions
+The European reference is Azevedo et al. (2026), who described an emerging
+multidrug-resistant ST10042 lineage in nine European countries. We are combining
+that published dataset with the current PubMLST ST10042 population and our Peru
+isolates from Lima and Iquitos.
 
-1. Can we reproduce the published 211-genome European cgMLST analysis and its major clusters?
-2. What is the current global distribution of ST10042 in PubMLST?
-3. Do the Peru ST10042 genomes fall within the published European <=5-allele clusters,
-   particularly cluster 21, or do they form distinct global clusters?
-4. Does the conserved European MDR genotype extend to the Peru/global population?
+## The biological questions
 
-## Published reference analysis
+The analysis is organised around four questions.
 
-Azevedo et al. analysed 217 ST10042 isolates from nine European countries. Their
-Figure 4 retained 211 genomes after cgMLST completeness filtering. The analysis used:
+1. **Are the Peru isolates the same lineage as the European isolates?**
+   We want to distinguish simple seven-locus ST10042 membership from genuinely close
+   genomic relatedness. The primary comparison uses the current PubMLST
+   *Campylobacter* cgMLST v2 scheme (1,142 loci), native LINcodes and pairwise allelic
+   distances, with the published Azevedo cluster labels retained as reference
+   annotations.
 
-- PubMLST Campylobacter cgMLST v1: 1,343 loci
-- chewBBACA 3.1.2
-- BSR threshold 0.6
-- size threshold 0.2
-- exact + inferred allele assignments for the profile matrix
-- >=95% cgMLST loci called
-- ReporTree 2.5.4
-- GrapeTree MSTreeV2
-- clustering at a maximum of 5 allelic differences
+2. **When did this lineage emerge?**
+   Once the relevant genomic lineage is defined, we will test for temporal signal and,
+   where justified, estimate its timescale using a recombination-aware core-genome
+   phylogeny. The aim is to estimate the age of the lineage and, if the data support it,
+   the timing of major geographic or host-associated expansions.
 
-The cleaned appendix and published cluster assignments are included under `data/`.
+3. **Where did it most likely emerge, and in which source reservoir?**
+   We will combine phylogeny, sampling date, country and source metadata to ask whether
+   the ancestral population is better supported in a particular geographic region and
+   host/source reservoir. This requires caution because the available public data are
+   strongly shaped by surveillance and sampling intensity; geographic origin will not
+   be inferred from the oldest sampled isolate alone.
+
+4. **Are the Peru isolates also MDR, and are they associated with disease in children?**
+   We will characterise the AMR determinants reported in the European lineage and
+   compare them with the Peru genomes. For Peru isolates linked to child metadata, we
+   will then test whether lineage membership and/or AMR genotype are associated with
+   diarrhoeal disease rather than asymptomatic carriage.
+
+## What we have done, and why
+
+### 1. Reconstructed the published European reference set
+
+We curated the 217 Azevedo ST10042 isolates and retained their published cgMLST-v1
+cluster labels. These labels are important historical anchors, but they are **not**
+used as the primary nomenclature for the new analysis because PubMLST now provides
+cgMLST v2 and LINcodes.
+
+Public archive availability is incomplete. Of the 217 published isolates, 111 run
+accessions currently resolve in ENA, but one of those (DK-2) has no FASTQ files.
+The assembly-ready European set is therefore **110 isolates**. The remaining
+published records are retained in the metadata analysis rather than being silently
+discarded.
+
+### 2. Retrieved the current PubMLST ST10042 population
+
+The authenticated PubMLST snapshot contains **41 ST10042 records**, including
+**23 Peru isolates**. Forty records have PubMLST contigs. After exact-ID overlap
+with the Azevedo set, there are **32 additional PubMLST genomes**.
+
+The current sequence-accessible candidate set is therefore:
+
+**142 genomes = 110 Azevedo read sets + 32 PubMLST-only assemblies**
+
+before final cgMLST quality control and hidden-duplicate checking.
+
+### 3. Moved the primary analysis to current cgMLST v2 + LINcodes
+
+Live PubMLST confirms that the current *Campylobacter jejuni/coli* cgMLST v2 scheme
+is **scheme 8 with 1,142 loci**. Its native LINcode hierarchy is now the main
+population-genomic framework for this project.
+
+All **23 Peru isolates have native v2 LINcodes**. They are not one tight clone:
+they split into multiple sublineages at the 25-, 10- and 5-allele levels.
+
+A particularly important preliminary result is that four Lima 2023 animal isolates
+(PubMLST **149884, 149885, 149886 and 149892**; three goats and one chicken) share
+the current PubMLST **Cjc_cgc2_5 group 12905** with **UK-7 / PubMLST 119231**, a
+published Azevedo cluster-21 isolate.
+
+That is strong evidence of close current-v2 relatedness, but it does **not** yet
+prove that the Peru isolates are members of the complete European epidemic lineage:
+Azevedo cluster 21 was defined under cgMLST v1, and only part of the published
+European collection is currently sequence-accessible.
+
+### 4. Reassembled and quality-checked the accessible European reads
+
+All **110/110** paired Azevedo datasets completed fastp preprocessing and SPAdes
+`--isolate` assembly successfully.
+
+Initial QC identified several clearly problematic assemblies. The same UK isolates
+excluded from the published Azevedo Figure 4 (UK-2, UK-4 and UK-6) also perform
+poorly in our current cgMLST-v2 checks, providing an independent validation of the
+QC process.
+
+We then compared our local assemblies with their matching official PubMLST
+assemblies. This showed that simple contig-length filtering is insufficient for some
+samples because low-coverage assembly fragments can create multiple exact allele
+hits.
+
+The current validation step therefore applies an **INNUca-like post-assembly
+coverage filter**: SPAdes k-mer coverage filtering followed by read mapping and
+removal of low-depth contigs. In the first successful pilot this reduced good
+overlap genomes, including UK-7, to clean cgMLST-v2 profiles while the genuinely
+poor UK-2/UK-4/UK-6 samples remained poor. A corrected pilot now maps the same
+fastp-trimmed reads that were used for assembly before this is scaled to all 110
+European genomes.
+
+## What we are trying to do next
+
+The immediate goal is to obtain one quality-controlled cgMLST-v2/LIN representation
+for every usable genome in the 142-genome accessible set. We will then map the
+published Azevedo v1 clusters onto the current v2/LIN hierarchy and determine exactly
+where each Peru isolate sits.
+
+That leads directly to the four biological analyses:
+
+- **Lineage identity:** calculate Peru-to-European allelic distances, identify nearest
+  neighbours, and determine whether the Peru genomes fall inside, immediately beside,
+  or outside the genomic space occupied by published European cluster 21.
+- **Emergence time:** build a recombination-aware core-genome phylogeny for the
+  relevant lineage, test temporal signal, and perform molecular-clock dating only if
+  the signal is adequate.
+- **Geographic/source origin:** reconstruct likely ancestral geography and host/source
+  states using dated phylogeny plus metadata, while explicitly accounting for uneven
+  sampling and the 107 currently unavailable Azevedo genomes.
+- **AMR and disease:** compare European and Peru AMR genotypes, then link the Peru
+  genomes to child case/control phenotype to test whether the lineage and its AMR
+  profile are enriched among diarrhoeal cases.
+
+The longer-term result should therefore be more than a statement that ST10042 occurs
+in both Europe and Peru. We want to reconstruct **what the lineage is, when it arose,
+where and in which reservoir it most plausibly emerged, how it spread, whether the
+Peru population belongs to the same expansion, and whether that population is
+clinically important in children.**
+
+## Important interpretation limits
+
+ST10042 by itself does not establish recent shared ancestry. Likewise, a FastTree
+topology alone is not sufficient to infer transmission direction or geographic
+origin.
+
+The current result that four Peru isolates share a 5-allele cgMLST-v2 group with a
+known European cluster-21 anchor is **positive evidence of close relatedness**, but
+the v2 group must not simply be renamed “cluster 21”. The two classifications were
+defined using different cgMLST schemes.
+
+Public sequence availability is also incomplete and geographically biased. In
+particular, only 23/44 published cluster-21 isolates are currently sequence-accessible,
+with a strong Portugal bias. Failure to match the accessible genomes therefore
+cannot by itself exclude membership of the wider published lineage.
 
 ## Repository layout
 
 ```text
-config/     fixed analysis settings and reproduction targets
-data/       small tracked manifests only; no raw sequence data
-docs/       analysis plan
-hpc/        HPC quick start + SLURM wrappers
-scripts/    PubMLST/ENA retrieval and analysis helpers
+config/     fixed analysis settings
+data/       tracked manifests and local sequence inputs (large data ignored by git)
+docs/       detailed analysis notes, checkpoints and interpretation
+hpc/        Puma/Slurm wrappers and setup notes
+scripts/    data retrieval, QC, assembly and population-genomic analysis helpers
 results/    generated outputs (ignored by git)
-schema/     local cgMLST schema (ignored by git)
+schema/     local cgMLST resources (ignored by git)
 ```
 
-## Quick start on the HPC
+The detailed, chronological workflow and technical checkpoints are in
+[`docs/analysis_plan.md`](docs/analysis_plan.md).
+
+## HPC quick start
 
 ```bash
 git clone git@github.com:Benizao1980/Ccoli-ST10042-global.git
 cd Ccoli-ST10042-global
+
 conda env create -f environment.yml
 conda activate st10042
 ```
 
-The complete contemporary PubMLST search uses OAuth. The ST10042 search endpoint is
-an HTTP POST request, and PubMLST does not allow the simple personal X-API-Key
-credential for POST requests. One-time OAuth setup is documented in
-[`hpc/README.md`](hpc/README.md).
-
-Retrieve **all current ST10042 metadata and available PubMLST assemblies**, plus a
-separate Peru manifest:
-
-```bash
-sbatch hpc/01_pubmlst.sbatch
-```
-
-Equivalent direct command for the global pull:
-
-```bash
-python scripts/01_query_pubmlst_st10042.py \
-  --out data/pubmlst_st10042_all.tsv \
-  --json-out data/pubmlst_st10042_all.json \
-  --download-contigs data/pubmlst_st10042_assemblies
-```
-
-The exploratory query used to start this project contained 23 confirmed Peru ST10042
-records (16 Lima, 7 Iquitos). This count is a validation checkpoint only: the analysis
-always uses the live PubMLST query rather than hard-coding those isolates.
-
-## Current PubMLST checkpoint
-
-The first successful authenticated retrieval returned **41 ST10042 metadata records**,
-of which **40 have PubMLST contigs**; **23 records are from Peru**. The full snapshot
-and interpretation are recorded in
-[`docs/pubmlst_snapshot_2026-10-03.md`](docs/pubmlst_snapshot_2026-10-03.md).
-
-## Initial exploratory analysis
-
-The analysis that motivated this project is preserved in
-[`docs/craig_initial_analysis.md`](docs/craig_initial_analysis.md). It summarises
-Craig's initial 40-genome FastTree analysis, including the 23 Peru ST10042 genomes,
-the early Peru/European intermixing signal, the preliminary AMR observations and
-the interpretation limits of that tree.
-
-## Reproducibility checkpoint
-
-Before interpreting the expanded global dataset, reproduce the published European result:
-
-- 217 input isolates
-- 211 genomes retained for Figure 4
-- cluster 21: 44 genomes
-- cluster 20: 15 genomes
-- cluster 15: 10 genomes
-
-Only after that checkpoint passes should the global/Peru population be added and
-cluster labels recomputed.
+PubMLST OAuth setup, Slurm submission wrappers and the current HPC workflow are
+documented in [`hpc/README.md`](hpc/README.md).
 
 ## Data policy
 
-Raw reads, assemblies, credentials, schemas and large generated outputs are not committed.
-Small public metadata/manifests required to reproduce the analysis are tracked.
+Raw reads, assemblies, credentials, schemas and large generated outputs are not
+committed. Small public metadata/manifests required to reproduce the analysis are
+tracked.
 
 ## Status
 
-Initial analysis scaffold. Unpublished Peru/global results should be treated as preliminary.
+Active analysis, October 2026. Peru/global findings are preliminary until the full
+quality-controlled cgMLST-v2/LIN analysis, AMR comparison and epidemiological
+linkage are complete.
