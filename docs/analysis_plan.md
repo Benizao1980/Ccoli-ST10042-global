@@ -196,3 +196,22 @@ Use `scripts/13_extract_pubmlst_v2_lincodes.py` for the clean current-PubMLST
 table and focal Peru summary. The earlier generic inspector was intentionally broad
 and previously matched the substring "lin" inside fields such as tetracycline; this
 has been corrected.
+
+
+## Azevedo SPAdes completion checkpoint (2026-10-04)
+
+All **110/110** paired Azevedo read sets completed fastp + SPAdes `--isolate`
+successfully (Slurm exit 0 for every array task), and every sample has a non-empty
+`contigs.fasta` plus a fastp JSON report.
+
+Median assembly statistics are consistent with a typical *Campylobacter* genome
+(1.654 Mb >=500 bp, 27 contigs >=500 bp, N50 163.7 kb, GC 31.6%), but the cohort
+contains at least one obvious gross outlier: maxima include 4.332 Mb assembly size,
+1,656 contigs >=500 bp and 47.3% GC, with minimum N50 8.45 kb. Do not pass the
+entire set directly into biological interpretation without identifying these
+sample(s).
+
+Use `scripts/18_flag_assembly_qc_outliers.py` to list review candidates. Its
+size/GC/fragmentation thresholds are diagnostic only, not automatic exclusions.
+Final inclusion for the main analysis should combine assembly sanity checks with
+PubMLST cgMLST-v2 typing quality, especially the native `max_missing=25` rule.
