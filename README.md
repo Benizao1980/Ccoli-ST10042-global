@@ -75,6 +75,13 @@ The exploratory query used to start this project contained 23 confirmed Peru ST1
 records (16 Lima, 7 Iquitos). This count is a validation checkpoint only: the analysis
 always uses the live PubMLST query rather than hard-coding those isolates.
 
+## Current PubMLST checkpoint
+
+The first successful authenticated retrieval returned **41 ST10042 metadata records**,
+of which **40 have PubMLST contigs**; **23 records are from Peru**. The full snapshot
+and interpretation are recorded in
+[`docs/pubmlst_snapshot_2026-10-03.md`](docs/pubmlst_snapshot_2026-10-03.md).
+
 ## Initial exploratory analysis
 
 The analysis that motivated this project is preserved in
