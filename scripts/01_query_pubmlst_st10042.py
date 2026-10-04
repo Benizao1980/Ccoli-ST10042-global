@@ -46,7 +46,7 @@ def isolate_id(url):
     return int(m.group(1)) if m else ""
 
 
-def oauth_fetch(url, method="GET", json_body=None, key_name="PubMLST", token_dir=None):
+def oauth_fetch(url, method="GET", json_body=None, key_name="PubMLST", token_dir=None, allow_404=False):
     """Fetch a BIGSdb resource using the official OAuth-aware downloader."""
     exe = shutil.which("bigsdb-downloader")
     if not exe:
@@ -82,6 +82,8 @@ def oauth_fetch(url, method="GET", json_body=None, key_name="PubMLST", token_dir
         p = subprocess.run(cmd, text=True, capture_output=True)
         if p.returncode != 0:
             detail = (p.stderr or p.stdout or "").strip()
+            if allow_404 and ('"status":404' in detail or "404 - Not Found" in detail):
+                return None
             raise SystemExit(
                 "ERROR: authenticated PubMLST request failed via "
                 f"bigsdb-downloader (exit {p.returncode}).\n{detail}"
@@ -109,7 +111,7 @@ def anonymous_fetch(url, method="GET", json_body=None):
     return r.text
 
 
-def fetch(url, method, json_body, auth, key_name, token_dir):
+def fetch(url, method, json_body, auth, key_name, token_dir, allow_404=False):
     if auth == "oauth":
         return oauth_fetch(
             url,
@@ -117,6 +119,7 @@ def fetch(url, method, json_body, auth, key_name, token_dir):
             json_body=json_body,
             key_name=key_name,
             token_dir=token_dir,
+            allow_404=allow_404,
         )
     return anonymous_fetch(url, method=method, json_body=json_body)
 
@@ -163,6 +166,7 @@ def main():
 
     out = []
     selected_raw = []
+    no_contigs = []
 
     for n, url in enumerate(urls, 1):
         obj = json.loads(
@@ -210,8 +214,12 @@ def main():
                 auth=a.auth,
                 key_name=a.oauth_key_name,
                 token_dir=a.oauth_token_dir,
+                allow_404=True,
             )
-            if fasta.startswith(">"):
+            if fasta is None:
+                no_contigs.append(str(iid))
+                print(f"WARNING: PubMLST isolate {iid} has no contigs; keeping metadata and skipping FASTA")
+            elif fasta.startswith(">"):
                 (d / f"{iid}.fasta").write_text(fasta, encoding="utf-8")
 
         if n % 25 == 0:
@@ -245,6 +253,10 @@ def main():
 
     label = f" for country={a.country}" if a.country else ""
     print(f"Wrote {len(out)} ST10042 records{label} to {a.out}")
+    if a.download_contigs:
+        print(f"Isolates without PubMLST contigs: {len(no_contigs)}")
+        if no_contigs:
+            print("No-contig PubMLST IDs: " + ",".join(no_contigs))
 
 
 if __name__ == "__main__":
