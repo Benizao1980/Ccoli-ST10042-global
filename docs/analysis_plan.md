@@ -5,14 +5,14 @@ Where do the Peru ST10042 genomes sit within the current global ST10042 populati
 and specifically relative to the European multidrug-resistant lineage described by
 Azevedo et al. (2026)?
 
-## Stage 1 — exact reproduction of the European reference analysis
+## Stage 1 — published reference and current sequence inventory
 1. Start with the 217 Azevedo isolates in `data/europe_217_manifest.tsv`.
-2. Resolve and obtain sequence data using the published run accessions.
-3. Reproduce assembly/QC as closely as possible to the study.
-4. Call PubMLST Campylobacter cgMLST v1 (1,343 loci) with chewBBACA 3.1.2.
-5. Retain exact/inferred calls and exclude genomes with <95% loci called.
-6. Reproduce the 211-genome dataset and published <=5 AD clustering.
-7. Required checkpoint: cluster 21 = 44 isolates, cluster 20 = 15, cluster 15 = 10.
+2. Retain the published cgMLST v1 cluster assignments as reference annotations.
+3. Resolve all currently public sequence data without pretending the unavailable
+   106 Azevedo records can be reproduced.
+4. Use the 23 currently accessible published cluster-21 genomes as labelled anchors.
+5. Keep the published v1/<=5 AD definition separate from the primary modern analysis:
+   v2/LIN results must not be described as a literal reproduction of Azevedo cluster 21.
 
 ## Stage 2 — current PubMLST ST10042 population
 1. Query all current PubMLST ST10042 isolate records.
@@ -24,14 +24,23 @@ Azevedo et al. (2026)?
 6. Preserve provenance flags (`Azevedo`, `PubMLST`, `Peru`) rather than discarding overlap.
 7. Treat 249 (217 + 32 exact-unmatched PubMLST records) as a provisional pre-QC candidate count only; inspect unmatched European records for hidden duplicate submissions before finalising N.
 
-## Stage 3 — focal Peru analysis
-For each Peru genome calculate:
-- cgMLST locus-call rate
-- nearest global ST10042 neighbour
-- minimum allelic distance to any Azevedo genome
-- minimum allelic distance to published cluster 21
-- <=5 AD cluster/component membership
+## Stage 3 — PubMLST cgMLST v2 + LIN analysis
+Use the current PubMLST/BIGSdb Campylobacter cgMLST v2 scheme and PubMLST LIN
+classification as the primary nomenclature. Discover the active scheme IDs from the
+live API with `scripts/11_pubmlst_v2_lin_preflight.py`; do not hard-code IDs from
+the older cgMLST v1 analysis.
+
+For each Peru genome calculate/retain:
+- cgMLST v2 locus-call rate
+- PubMLST v2 allelic profile
+- PubMLST LIN code / hierarchical classification
+- nearest global ST10042 neighbour under v2
+- minimum v2 allelic distance to any accessible Azevedo genome
+- minimum v2 allelic distance to an accessible published cluster-21 anchor
 - source, city and year context
+
+Published Azevedo v1 cluster membership remains an annotation. A v2/LIN grouping is
+not assumed to be identical to a published v1 <=5-AD cluster.
 
 ## Stage 4 — AMR
 Compare the Peru/global population for the lineage-defining markers reported by Azevedo:
@@ -134,17 +143,21 @@ manifest reproducibly.
 
 ## Assembly strategy
 
-The Azevedo study states that all study isolates underwent read QC, species
-confirmation and de novo assembly with **INNUca v4.2.2** before cgMLST. Therefore
-the 111 accessible Azevedo raw-read datasets should be assembled before matched
-cgMLST analysis rather than calling cgMLST directly from reads.
+The primary analysis is not an exact reconstruction of the 2026 INNUca/cgMLST-v1
+workflow. It uses current PubMLST cgMLST v2 and LIN nomenclature.
 
-The published Campylobacter cgMLST v1 scheme is the 1,343-locus Cody scheme;
-independent literature identifies the PubMLST scheme as **scheme_id=4**. This
-matches the existing project configuration. Do not switch to current cgMLST v2
-(1,142 loci) for reproduction of the Azevedo analysis.
+For **Illumina-only reads**, assemble consistently with **SPAdes in isolate mode**.
+For samples with both Illumina and Oxford Nanopore reads, use **Unicycler hybrid
+assembly**. Do not use Unicycler merely as a wrapper around SPAdes for the
+Illumina-only Azevedo set: direct SPAdes is simpler and avoids introducing another
+assembly/graph-processing layer.
+
+Existing PubMLST contigs are retained as the database assemblies for the 32
+PubMLST-only additions. Assembly method is therefore not perfectly homogeneous;
+control this with assembly QC and cgMLST-v2 completeness thresholds, and optionally
+perform a sensitivity analysis on records for which raw reads are also available.
 
 Before downloading the 111 FASTQ datasets, run
-`scripts/10_plan_azevedo_assembly.py` to quantify compressed download volume,
-read-file layout and country composition. Build the INNUca execution environment
-only after this inventory is checked.
+`scripts/10_plan_azevedo_assembly.py` to quantify compressed download volume and
+read-file layout. The separate `environment-assembly.yml` contains SPAdes,
+Unicycler (for hybrid data), fastp and QUAST.
