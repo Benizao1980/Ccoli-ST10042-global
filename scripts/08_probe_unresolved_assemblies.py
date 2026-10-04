@@ -57,42 +57,96 @@ PREFERRED_RETURN_FIELDS = {
 }
 
 
-def get_json(endpoint, params, retries=4):
+def get_metadata_response(endpoint, params, retries=4):
+    """Return ENA metadata endpoint response as text plus content type.
+
+    ENA Portal metadata endpoints such as returnFields/searchFields are not
+    guaranteed to return JSON by default; deployments may return newline/TSV text.
+    """
     last = None
     for attempt in range(1, retries + 1):
         try:
-            r = requests.get(f"{BASE}/{endpoint}", params=params, timeout=90)
+            r = requests.get(
+                f"{BASE}/{endpoint}",
+                params={**params, "format": "json"},
+                timeout=90,
+            )
             r.raise_for_status()
-            return r.json()
-        except (requests.RequestException, json.JSONDecodeError) as e:
+            return r.text, r.headers.get("content-type", "")
+        except requests.RequestException as e:
             last = e
             if attempt < retries:
                 time.sleep(2 ** (attempt - 1))
     raise RuntimeError(f"ENA {endpoint} failed: {last}")
 
 
-def discover_fields(result, endpoint):
-    data = get_json(endpoint, {"result": result})
+def _fields_from_json(data):
     fields = set()
     if isinstance(data, list):
         for item in data:
             if isinstance(item, str):
                 fields.add(item)
             elif isinstance(item, dict):
-                # ENA has used fieldName as well as name in API metadata.
                 for key in ("fieldName", "name", "id"):
                     if item.get(key):
                         fields.add(str(item[key]))
+                        break
     elif isinstance(data, dict):
-        for key, value in data.items():
+        for value in data.values():
             if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, str):
-                        fields.add(item)
-                    elif isinstance(item, dict):
-                        for k in ("fieldName", "name", "id"):
-                            if item.get(k):
-                                fields.add(str(item[k]))
+                fields |= _fields_from_json(value)
+    return fields
+
+
+def _fields_from_text(text):
+    """Parse ENA field metadata returned as newline or TSV text."""
+    fields = set()
+    header_tokens = {
+        "field", "fieldname", "field_name", "name", "id",
+        "description", "type", "searchfield", "returnfield",
+    }
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        # HTML here means the metadata endpoint did not return its advertised data.
+        if line.startswith("<"):
+            raise RuntimeError(
+                "ENA field-discovery endpoint returned HTML rather than field metadata: "
+                + line[:120]
+            )
+        first = line.split("\t", 1)[0].strip()
+        # Some deployments emit a comma-separated header/list.
+        if "\t" not in line and "," in first:
+            candidates = [x.strip() for x in first.split(",")]
+        else:
+            candidates = [first]
+        for value in candidates:
+            if not value:
+                continue
+            if value.lower() in header_tokens:
+                continue
+            if re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", value):
+                fields.add(value)
+    return fields
+
+
+def discover_fields(result, endpoint):
+    text, content_type = get_metadata_response(endpoint, {"result": result})
+
+    # Prefer JSON when ENA honours format=json.
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        data = None
+
+    fields = _fields_from_json(data) if data is not None else _fields_from_text(text)
+    if not fields:
+        snippet = text[:300].replace("\n", "\\n")
+        raise RuntimeError(
+            f"Could not parse any fields from ENA {endpoint} for result={result}; "
+            f"content-type={content_type!r}; response={snippet!r}"
+        )
     return fields
 
 
