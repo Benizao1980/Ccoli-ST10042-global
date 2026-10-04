@@ -454,3 +454,32 @@ assemblies** using `scripts/24_pubmlst_v2_qc_all_azevedo.py`. This step is
 diagnostic only: a locus without an exact known-allele hit can represent a genuine
 novel allele, so `loci_without_exact_hit` must not yet be treated as the final
 missing-locus count.
+
+
+## Full 110-genome scheme-8 exact-hit QC (2026-10-04)
+
+Sequential PubMLST scheme-8 exact matching has completed for all 110 coverage-filtered
+Azevedo assemblies.
+
+- **105/110** have <=25 loci without an exact known-allele hit;
+- **106/110** have zero ambiguous exact-hit loci;
+- the five >25 genomes are UK-4 (87), UK-6 (66), UK-2 (53), PT-41 (43) and PT-58 (28);
+- UK-4/UK-6/UK-2 remain obvious sample-level failures and match the published
+  Figure-4 exclusions;
+- PT-41/PT-58 have zero ambiguity and should not be excluded until full allele
+  calling distinguishes true missing loci from novel alleles;
+- **all 23 accessible published cluster-21 genomes pass the exact-hit diagnostic
+  comfortably (1–10 loci without exact hits; 0 ambiguous loci).**
+
+The exact-hit REST endpoint cannot classify novel alleles and therefore is not the
+final cgMLST profile. The next reproducibility checkpoint is to freeze the live
+PubMLST cgMLST-v2 scheme (all 1,142 locus allele FASTAs, profiles, LIN definitions,
+and classification-scheme metadata) with checksums using
+`scripts/25_snapshot_pubmlst_v2_schema.py`.
+
+Then build the exact 142-genome input list with
+`scripts/26_prepare_cgmlst_v2_input.py` and adapt the frozen external schema for
+chewBBACA. chewBBACA can infer novel alleles while retaining exact matches to an
+external BIGSdb schema, making it suitable for the final pairwise allelic-distance
+matrix. Any LIN-like assignments calculated locally must be distinguished from
+official PubMLST LINcodes unless PubMLST itself returns an assignment.
