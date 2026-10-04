@@ -64,6 +64,68 @@ They lacked the 23S rRNA A2075G macrolide-resistance mutation.
 
 This profile is closely concordant with the conserved fluoroquinolone, tetracycline and beta-lactam resistance backbone reported by Azevedo et al.
 
+## Additional 70-genome core-gene tree from Craig
+
+Craig subsequently generated a second exploratory tree using a larger European/Peru
+subset. The figure reports:
+
+- **70 genomes** passing a 95%-locus threshold;
+- **960 PubMLST cgMLST-v1 core loci**;
+- an **821,895-bp** core alignment;
+- **4,288 variable sites**; and
+- a maximum-likelihood tree fitted with **GTR+ASC+R2**, with UFBoot >=95 marked.
+
+This tree is useful as an independent exploratory view because it includes substantially
+more European sequence than the original 40-genome PubMLST tree, while still showing
+the Peru isolates against country, source and collection year.
+
+### What this second tree adds
+
+**Peru is clearly polyphyletic within ST10042.** The 23 Peru isolates do not form one
+single country-specific branch. Instead, several Peru groups occur at different points
+within the wider European-dominated tree. This argues against treating "Peru ST10042"
+as a single local clone.
+
+The **four 2023 Lima animal isolates** that motivated the current cgMLST analysis
+(CAL00129-500017, CAL00109-500089, CAL00120-500011 and CAL00119-500001) form a
+very tight group on the same shallow part of the tree as Portuguese genomes. These are
+the same four isolates that, in the current PubMLST cgMLST-v2 analysis, share
+`Cjc_cgc2_5 group 12905` with UK-7, a published Azevedo cluster-21 member.
+The agreement between the two independent analyses strengthens the hypothesis that
+this Lima animal group belongs very close to the European MDR expansion.
+
+The **Iquitos 2024 human isolates** form their own tight group, separate from the
+four Lima 2023 animal genomes. The tree also shows distinct **Lima 2025 cattle/beef**
+and **Lima 2025 poultry/chicken-meat** groupings. This source-associated structure is
+biologically interesting and suggests that the Peru population contains multiple
+ecological sublineages rather than one homogeneous expansion.
+
+Several other Peru tips occur separately among European branches. Taken together, the
+pattern is compatible with multiple introductions and/or diversification within Peru,
+but the tree alone cannot distinguish those processes or count introduction events.
+
+### How to use this tree
+
+This figure is **supporting exploratory evidence**, not the final lineage definition.
+It uses a reduced set of 960 loci from cgMLST v1, whereas the primary project now uses
+the current 1,142-locus PubMLST cgMLST-v2 scheme and LINcodes. It is also a
+70-genome subset rather than the full sequence-accessible collection.
+
+The most useful contribution of this tree is therefore hypothesis generation:
+
+1. test whether the four Lima 2023 animal genomes remain embedded within the European
+   lineage under full v2 allele-distance analysis;
+2. test whether the Iquitos human, Lima cattle/beef and Lima poultry groups represent
+   distinct v2/LIN sublineages;
+3. examine whether source-associated structure persists after recombination-aware
+   phylogenetic analysis; and
+4. link the human Peru sublineages to diarrhoeal versus asymptomatic child phenotype.
+
+It should **not** be used on its own to infer Europe-to-Peru directionality, a country
+of origin, a source reservoir of origin, or the date of emergence. Those require the
+quality-controlled full dataset, temporal signal testing and explicit ancestral-state
+analysis.
+
 ## What the initial analysis did **not** establish
 
 The FastTree result is deliberately retained as the project's starting point, but it should not be used to claim:
