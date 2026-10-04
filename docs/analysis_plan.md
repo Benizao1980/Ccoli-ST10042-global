@@ -315,3 +315,30 @@ assembly profiles and published Figure-4 exclusion.
 
 This validates the INNUca-like coverage-filtering strategy for scale-up to all 110
 accessible Azevedo read sets.
+
+
+## Full 110-genome coverage-filter completion (2026-10-04)
+
+The validated INNUca-like coverage filter has now completed successfully for
+**110/110 accessible Azevedo genomes** (all Slurm tasks COMPLETED; 0 incomplete
+outputs).
+
+Post-filter cohort summary:
+
+- median filtered assembly size: **1,648,401 bp**;
+- median filtered contig count: **27**;
+- filtered size range: **1,632,875–2,517,580 bp**;
+- filtered contig range: **18–404**;
+- median mapped mean depth: **128.45x**.
+
+UK-4, UK-6 and UK-2 remain the three most fragmented filtered UK assemblies
+(404, 233 and 216 contigs respectively), consistent with the overlap pilot and
+the published Figure-4 exclusions. Other larger/fragmented Portuguese genomes
+remain in the dataset pending cgMLST-v2 QC; fragmentation alone is not used as
+an exclusion criterion.
+
+The next checkpoint is a **sequential scheme-8 exact-hit QC across all 110 filtered
+assemblies** using `scripts/24_pubmlst_v2_qc_all_azevedo.py`. This step is
+diagnostic only: a locus without an exact known-allele hit can represent a genuine
+novel allele, so `loci_without_exact_hit` must not yet be treated as the final
+missing-locus count.
