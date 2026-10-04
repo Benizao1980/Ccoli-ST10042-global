@@ -143,9 +143,10 @@ def main():
     p.add_argument("--combined",default="results/combined_st10042_provisional.tsv")
     p.add_argument("--spades-manifest",default="results/azevedo_spades_manifest.tsv")
     p.add_argument("--assembly-dir",default="data/europe_assemblies")
-    p.add_argument("--work-dir",default="data/europe_assemblies_innuca_like")
-    p.add_argument("--cache-dir",default="results/pubmlst_v2_innuca_like_raw")
-    p.add_argument("--out",default="results/pubmlst_v2_innuca_like_overlap.tsv")
+    p.add_argument("--trim-dir",default="data/europe_trimmed")
+    p.add_argument("--work-dir",default="data/europe_assemblies_innuca_like_trimmed")
+    p.add_argument("--cache-dir",default="results/pubmlst_v2_innuca_like_trimmed_raw")
+    p.add_argument("--out",default="results/pubmlst_v2_innuca_like_trimmed_overlap.tsv")
     p.add_argument("--threads",type=int,default=4)
     p.add_argument("--min-length",type=int,default=200)
     p.add_argument("--min-spades-cov",type=float,default=2.0)
@@ -175,11 +176,14 @@ def main():
             continue
 
         rr=reads[aid]
-        r1=Path(rr["read1_path"])
-        r2=Path(rr["read2_path"])
+        # Match the reads used for our SPAdes assembly. INNUca likewise updates
+        # fastq_files to the trimmed paired reads before assembly mapping.
+        r1=Path(a.trim_dir)/aid/f"{aid}_R1.fastq.gz"
+        r2=Path(a.trim_dir)/aid/f"{aid}_R2.fastq.gz"
         if not r1.exists() or not r2.exists():
-            print(f"WARNING missing reads for {aid}; skipping")
-            continue
+            raise SystemExit(
+                f"ERROR missing fastp-trimmed reads for {aid}: {r1} {r2}"
+            )
 
         print(f"\n{aid} / PubMLST {pid}")
         od=Path(a.work_dir)/aid
@@ -210,14 +214,14 @@ def main():
         # Map processed paired reads back to the stage-1 assembly.
         prefix=str(od/"bt2")
         if not Path(prefix+".1.bt2").exists() and not Path(prefix+".1.bt2l").exists():
-            run(["bowtie2-build",str(stage1),prefix])
+            run(["bowtie2-build","--quiet",str(stage1),prefix])
 
         bam=od/"reads.sorted.bam"
         if not bam.exists():
             sam=od/"reads.sam"
             with open(sam,"w") as sfh:
                 run([
-                    "bowtie2","--very-sensitive-local","--threads",str(a.threads),
+                    "bowtie2","--quiet","--very-sensitive-local","--threads",str(a.threads),
                     "--fr","-I","0","-X","2000",
                     "-x",prefix,"-1",str(r1),"-2",str(r2)
                 ],stdout=sfh)
