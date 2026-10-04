@@ -50,8 +50,10 @@ Do not place keys, secrets or token files in this repository.
 After OAuth setup succeeds:
 
 ```bash
-sbatch hpc/01_pubmlst.sbatch
+bash hpc/submit_pubmlst.sh
 ```
+
+The wrapper clears any `SBATCH_MEM_*` variables in the submitting shell and explicitly requests 5 GB. This matters because Slurm `SBATCH_*` environment variables override `#SBATCH` directives; a stale 1 MB override caused an earlier job to be killed during Conda activation.
 
 This creates:
 
@@ -81,3 +83,13 @@ sbatch hpc/02_resolve_ena.sbatch
 
 That job resolves the 217 published read accessions. We can download/assemble them
 after checking that the manifest reproduces the paper before moving to cgMLST.
+
+## Check for inherited Slurm overrides
+
+If a job reports an unexpected `ReqMem`, inspect the submitting shell:
+
+```bash
+env | grep '^SBATCH_' || true
+```
+
+On Puma, one standard CPU corresponds to 5 GB memory. The safe submission wrapper above explicitly requests 5 GB and removes inherited memory overrides before calling `sbatch`.
