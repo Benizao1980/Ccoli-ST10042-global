@@ -85,3 +85,13 @@ for FR-1. This is a run accession, not a BioProject/study accession. Preserve th
 published value in the source manifest rather than silently correcting it. Assembly
 probing therefore validates project-accession syntax and handles FR-1 separately by
 its exact run accession.
+
+
+### ENA assembly schema note
+
+The current ENA Portal API does not expose the historical `run_ref` field in the
+genome-assembly return schema used by older examples. The rescue script therefore
+discovers `returnFields` and `searchFields` at runtime and queries both
+`assembly` and `analysis` (sequence-assembly) domains using only fields that ENA
+currently advertises. This avoids treating API-schema drift as evidence that an
+assembly is absent.
