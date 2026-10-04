@@ -17,6 +17,10 @@ import pandas as pd
 ALLELE_RE=re.compile(r"^(?P<locus>.+)_(?P<allele>[^_:]+)(?::|$)")
 
 
+def split_ids(value):
+    return [x for x in re.split(r"[,;\\s]+",str(value).strip()) if x]
+
+
 def parse_invalid(path):
     invalid={}
     for line in Path(path).read_text(encoding="utf-8",errors="replace").splitlines():
@@ -57,9 +61,11 @@ def main():
 
     off=pd.read_csv(a.official,sep="\t",dtype=str).fillna("")
     off=off[off["cgST_v2"].ne("")].copy()
-    target_cgsts=set(off["cgST_v2"].astype(str))
-    print(f"Current ST10042 records with official cgST: {len(off)}")
-    print(f"Distinct ST10042 cgSTs to audit: {len(target_cgsts)}")
+    target_cgsts=set()
+    for value in off["cgST_v2"]:
+        target_cgsts.update(split_ids(value))
+    print(f"Current ST10042 records with cgST-related assignment: {len(off)}")
+    print(f"Distinct cgST candidates to audit: {len(target_cgsts)}")
 
     rows=[]
     found_profiles=set()
@@ -92,13 +98,28 @@ def main():
             })
 
     prof=pd.DataFrame(rows)
-    ann=off[["pubmlst_id","isolate","country","town_or_city","year","source","cgST_v2","LINcode_v2"]]
+    ann_rows=[]
+    for _,r in off.iterrows():
+        ids=split_ids(r["cgST_v2"]) or [""]
+        for cgst in ids:
+            ann_rows.append({
+                "pubmlst_id":r["pubmlst_id"],
+                "isolate":r["isolate"],
+                "country":r["country"],
+                "town_or_city":r["town_or_city"],
+                "year":r["year"],
+                "source":r["source"],
+                "cgST_v2_original":r["cgST_v2"],
+                "cgST_v2":cgst,
+                "LINcode_v2":r["LINcode_v2"],
+            })
+    ann=pd.DataFrame(ann_rows)
     out=ann.merge(prof,on="cgST_v2",how="left")
     Path(a.out).parent.mkdir(parents=True,exist_ok=True)
     out.to_csv(a.out,sep="\t",index=False)
 
     affected=out[pd.to_numeric(out["excluded_alleles_used"],errors="coerce").fillna(0)>0]
-    print(f"Official ST10042 cgST profiles found in snapshot: {len(found_profiles)}/{len(target_cgsts)}")
+    print(f"ST10042 cgST candidate profiles found in snapshot: {len(found_profiles)}/{len(target_cgsts)}")
     print(f"Current ST10042 records using >=1 chewBBACA-excluded schema allele: {len(affected)}")
     if len(affected):
         print("\nAFFECTED CURRENT ST10042 RECORDS")
