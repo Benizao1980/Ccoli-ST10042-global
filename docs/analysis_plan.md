@@ -483,3 +483,47 @@ chewBBACA. chewBBACA can infer novel alleles while retaining exact matches to an
 external BIGSdb schema, making it suitable for the final pairwise allelic-distance
 matrix. Any LIN-like assignments calculated locally must be distinguished from
 official PubMLST LINcodes unless PubMLST itself returns an assignment.
+
+
+## Frozen scheme-8 schema + chewBBACA adaptation checkpoint (2026-10-04)
+
+The current PubMLST cgMLST-v2 scheme snapshot completed successfully:
+
+- **1,142/1,142 loci** downloaded with checksums;
+- frozen `profiles.tsv` retained (~279 MB) and includes the current PubMLST
+  profile catalogue and LINcode field;
+- live LINcode/classification metadata were also captured.
+
+chewBBACA 3.5.4 `PrepExternalSchema` then adapted **1,142/1,142 loci**, with no
+locus lost. It excluded **163 individual allele sequences** because they do not
+satisfy chewBBACA's complete-CDS/translation rules. These exclusions must not be
+described as "invalid PubMLST alleles"; they are incompatible with chewBBACA's
+external-schema representation. Before scale-up, audit whether any current ST10042
+official cgST uses one of those allele IDs and validate allele numbering directly
+on the nine Azevedo/PubMLST overlap controls.
+
+### PubMLST nomenclature policy
+
+The primary nomenclature remains **PubMLST cgMLST v2 + native LINcode**, not a new
+chewBBACA clustering system.
+
+For profiles that exactly match the frozen PubMLST catalogue:
+- report the official PubMLST cgST;
+- report the official frozen PubMLST LINcode;
+- report official `Cjc_cgc2_*` group assignments where available.
+
+For profiles containing a genuinely novel allele/profile:
+- retain the chewBBACA allele profile for distance calculations;
+- identify the nearest official PubMLST profile(s);
+- report the **shared official LINcode prefix / threshold placement**;
+- do not invent or label a complete new LINcode as "official".
+
+BIGSdb's own LINcode assignment is order-dependent when a genuinely new bin must
+be created. Therefore, for profiles absent from PubMLST, the scientifically robust
+local statement is the existing LIN prefix shared with official profiles and the
+allelic distance, unless the new profile is subsequently assigned by PubMLST.
+
+The next validation job is `hpc/10_chewbbaca_overlap_pilot.sbatch`. It compares
+chewBBACA numeric allele IDs directly with the unique exact allele IDs returned by
+the PubMLST scheme-8 REST endpoint for the same filtered assemblies. Scale-up to
+all 142 genomes should proceed only if those known allele IDs are preserved.
