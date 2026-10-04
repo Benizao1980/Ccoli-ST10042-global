@@ -130,3 +130,21 @@ genome is positive evidence; absence of such a match is not definitive exclusion
 
 Use `scripts/09_build_accessible_manifest.py` to generate the current-access
 manifest reproducibly.
+
+
+## Assembly strategy
+
+The Azevedo study states that all study isolates underwent read QC, species
+confirmation and de novo assembly with **INNUca v4.2.2** before cgMLST. Therefore
+the 111 accessible Azevedo raw-read datasets should be assembled before matched
+cgMLST analysis rather than calling cgMLST directly from reads.
+
+The published Campylobacter cgMLST v1 scheme is the 1,343-locus Cody scheme;
+independent literature identifies the PubMLST scheme as **scheme_id=4**. This
+matches the existing project configuration. Do not switch to current cgMLST v2
+(1,142 loci) for reproduction of the Azevedo analysis.
+
+Before downloading the 111 FASTQ datasets, run
+`scripts/10_plan_azevedo_assembly.py` to quantify compressed download volume,
+read-file layout and country composition. Build the INNUca execution environment
+only after this inventory is checked.
