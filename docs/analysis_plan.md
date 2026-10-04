@@ -18,7 +18,7 @@ Azevedo et al. (2026)?
 1. Query all current PubMLST ST10042 isolate records.
 2. Use authenticated access so post-2024 records are included.
 3. Retain all metadata records for ascertainment/distribution analysis.
-4. Retrieve sequence only for records with genome assemblies.
+4. Retrieve sequence only for records with genome assemblies. Records without contigs remain in the metadata/distribution dataset but are excluded from cgMLST.
 5. De-duplicate against the Azevedo dataset using run accession, BioSample/assembly,
    PubMLST ID, then strain/isolate metadata as fallback.
 6. Preserve provenance flags (`Azevedo`, `PubMLST`, `Peru`) rather than discarding overlap.
