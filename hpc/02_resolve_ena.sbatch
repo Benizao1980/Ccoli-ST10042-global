@@ -1,8 +1,9 @@
 #!/bin/bash
 #SBATCH --account=cooperma
+#SBATCH --partition=standard
 #SBATCH --job-name=st10042_ena
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem-per-cpu=4G
 #SBATCH --time=02:00:00
 #SBATCH --output=st10042_ena-%j.out
 
