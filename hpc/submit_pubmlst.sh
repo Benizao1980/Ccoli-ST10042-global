@@ -1,12 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-# Known-good Puma configuration for the cooperma allocation:
-# account=cooperma, partition=standard, memory via --mem-per-cpu.
+script="hpc/01_pubmlst.sbatch"
+
+if [[ "$(head -n 1 "$script")" != "#!/bin/bash" ]]; then
+  echo "ERROR: $script is malformed: first line must be #!/bin/bash" >&2
+  exit 2
+fi
+
 unset SBATCH_MEM_PER_NODE SBATCH_MEM_PER_CPU SBATCH_MEM_PER_GPU
+
 exec sbatch \
   --account=cooperma \
   --partition=standard \
   --cpus-per-task=1 \
   --mem-per-cpu=4G \
-  hpc/01_pubmlst.sbatch
+  "$script"
