@@ -1,10 +1,11 @@
-#SBATCH --mem-per-cpu=4G
 #!/bin/bash
 #SBATCH --account=cooperma
 #SBATCH --partition=standard
 #SBATCH --job-name=st10042_pubmlst
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=4G
 #SBATCH --time=06:00:00
 #SBATCH --output=st10042_pubmlst-%j.out
 #SBATCH --error=st10042_pubmlst-%j.err
@@ -15,7 +16,6 @@ echo "ST10042 PubMLST job starting"
 echo "date: $(date)"
 echo "host: $(hostname)"
 echo "workdir: $(pwd)"
-echo "Slurm memory/node: ${SLURM_MEM_PER_NODE:-<not set>} MB"
 echo "Slurm memory/cpu: ${SLURM_MEM_PER_CPU:-<not set>} MB"
 echo "inherited conda env: ${CONDA_DEFAULT_ENV:-<not set>}"
 echo "inherited CONDA_EXE: ${CONDA_EXE:-<not set>}"
