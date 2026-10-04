@@ -606,7 +606,7 @@ The primary current-v2 workflow is now:
 
 LINwalker therefore functions as a **reference-placement/harmonisation layer around
 PubMLST**, not as a competing nomenclature system. Local statuses include
-`EXACT_REFERENCE_PROFILE`, `SUPPORTED_PREFIX` and `UNRESOLVED`.
+`EXACT_REFERENCE_GENOME`, `SUPPORTED_PREFIX` and `UNRESOLVED`.
 
 The project pins the tested LINwalker commit in `environment-linwalker.yml`.
 GitHub Actions passed the new 18-level placement, ST/CC context, exact-cgST and
