@@ -57,8 +57,17 @@ def main():
     print(f"FASTQ files: {int(out['n_fastq_files'].sum())}")
     print(f"Runs with 2 FASTQ files: {(out['n_fastq_files']==2).sum()}")
     print(f"Runs with 1 FASTQ file: {(out['n_fastq_files']==1).sum()}")
-    print(f"Runs with other FASTQ file counts: {(~out['n_fastq_files'].isin([1,2])).sum()}")
+    odd = out[~out["n_fastq_files"].isin([1,2])]
+    print(f"Runs with other FASTQ file counts: {len(odd)}")
+    if len(odd):
+        print("\nUNEXPECTED FASTQ LAYOUT")
+        print(
+            odd[["Strain_ID","Country","run_accession","n_fastq_files","fastq_ftp"]]
+            .to_string(index=False)
+        )
     print(f"ENA metadata length-consistent: {out['metadata_length_consistent'].sum()}/{len(out)}")
+    usable_pairs = (out["n_fastq_files"] == 2).sum()
+    print(f"Usable paired-end runs for SPAdes: {usable_pairs}")
     print(f"Compressed download size: {total_bytes/1e9:.2f} GB ({total_bytes/(1024**3):.2f} GiB)")
 
     print("\nBY COUNTRY")
