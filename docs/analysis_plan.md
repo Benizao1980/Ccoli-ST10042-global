@@ -235,3 +235,21 @@ known PubMLST records. Compare exact allele recovery and returned scheme fields 
 the official current record before scaling allele calling to all 110 Azevedo
 assemblies. BIGSdb's scheme sequence endpoint reports exact allele matches; genuine
 novel alleles will require a different/local calling route for the final analysis.
+
+
+### Exact-hit ambiguity checkpoint
+
+The first scheme-8 API pilot recovered nearly all loci for several known overlaps
+but found multiple exact allele hits in some assemblies. This should not be treated
+as equivalent to PubMLST's `max_missing=25`: UK-7, for example, has an official
+LINcode despite multiple cgST values in its current PubMLST record. The initial
+pilot's requirement of zero ambiguous loci was therefore too conservative and has
+been removed.
+
+Before scaling, compare each local SPAdes overlap assembly with the official
+PubMLST contigs for the same isolate using
+`scripts/20_compare_overlap_assemblies.py`. The comparison also tests a >=500-bp
+filtered version of the local SPAdes FASTA, because the first pilot queried every
+SPAdes contig including small low-coverage graph fragments. This will establish
+whether ambiguity is driven by our assembly representation or is intrinsic to the
+stored isolate.
