@@ -43,10 +43,11 @@ def main():
         pid = r["pubmlst_id"]
 
         if provenance in ("Azevedo", "Azevedo+PubMLST"):
-            ok = ena_status.get(aid, "") == "resolved"
+            fastq_urls = ena_fastq.get(aid, "")
+            ok = ena_status.get(aid, "") == "resolved" and bool(str(fastq_urls).strip())
             availability.append(ok)
             sources.append("ENA_FASTQ" if ok else "currently_unavailable")
-            locations.append(ena_fastq.get(aid, "") if ok else "")
+            locations.append(fastq_urls if ok else "")
         elif provenance == "PubMLST":
             fasta = Path(a.pubmlst_dir) / f"{pid}.fasta"
             ok = fasta.exists()
