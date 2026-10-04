@@ -4,10 +4,12 @@
 Primary principle:
 - PubMLST/BIGSdb remains the nomenclature authority.
 - Reuse the cached scheme-8 whole-genome query responses generated in script 24.
-- Where BIGSdb identifies one existing cgST, retrieve that profile directly from
-  PubMLST and export its official LINcode and Cjc_cgc2_* classifications.
-- Keep genomes with no exact existing profile, or multiple profile matches, separate
-  for nearest-profile / Genome Comparator follow-up. Do not invent cgST/LIN values.
+- Where BIGSdb returns one or more existing cgSTs compatible with the exact-known
+  designations, retrieve those official PubMLST profiles and their LIN metadata.
+- A compatible profile is NOT automatically an exact genome assignment when the
+  assembly has loci without exact-known allele calls.
+- Keep unresolved/ambiguous genomes separate for Genome Comparator / nearest-profile
+  follow-up. Do not invent cgST/LIN values.
 
 This script does not perform local clustering.
 """
@@ -83,6 +85,7 @@ def main():
     p.add_argument("--sequence-cache",default="results/pubmlst_v2_all_azevedo_raw")
     p.add_argument("--profile-cache",default="results/pubmlst_v2_official_profiles")
     p.add_argument("--official-current",default="results/pubmlst_st10042_v2_lincodes.tsv")
+    p.add_argument("--combined",default="results/combined_st10042_provisional.tsv")
     p.add_argument("--out",default="results/azevedo_pubmlst_official_v2.tsv")
     p.add_argument("--sleep",type=float,default=0.15)
     a=p.parse_args()
@@ -90,6 +93,11 @@ def main():
     qc=pd.read_csv(a.qc,sep="\t",dtype=str).fillna("")
     current=pd.read_csv(a.official_current,sep="\t",dtype=str).fillna("")
     current_map=current.set_index("pubmlst_id").to_dict("index")
+
+    combined=pd.read_csv(a.combined,sep="\t",dtype=str).fillna("")
+    overlap_map={}
+    for _,cr in combined[combined["provenance"].eq("Azevedo+PubMLST")].iterrows():
+        overlap_map[str(cr["azevedo_strain_id"])]=str(cr["pubmlst_id"])
 
     rows=[]
     requested={}
@@ -109,18 +117,19 @@ def main():
             "Country":r.get("Country",""),
             "Figure4_cluster":r.get("Figure4_cluster",""),
             "Cluster21_member":r.get("Cluster21_member",""),
-            "pubmlst_overlap_id":r.get("pubmlst_id",""),
+            "pubmlst_overlap_id":overlap_map.get(sid,""),
             "exact_loci_any":r.get("exact_loci_any",""),
             "ambiguous_loci":r.get("ambiguous_loci",""),
             "loci_without_exact_hit":r.get("loci_without_exact_hit",""),
             "pubmlst_cgST_candidates":";".join(candidates),
             "pubmlst_profile_match_status":(
-                "single_official_profile" if len(candidates)==1 else
-                "multiple_official_profiles" if len(candidates)>1 else
-                "no_exact_official_profile"
+                "single_compatible_official_profile" if len(candidates)==1 else
+                "multiple_compatible_official_profiles" if len(candidates)>1 else
+                "no_profile_resolved_from_exact_known_calls"
             ),
-            "official_cgST":"",
-            "official_LINcode":"",
+            "compatible_official_cgST":"",
+            "compatible_profile_LINcode":"",
+            "exact_profile_assignment":"No",
         }
         for t in CGC:
             row[f"Cjc_cgc2_{t}"]=""
@@ -135,18 +144,21 @@ def main():
                 )
                 time.sleep(a.sleep)
             prof=requested[cgst]
-            row["official_cgST"]=str(prof.get("cgST",cgst))
-            row["official_LINcode"]=str(prof.get("LINcode",""))
+            row["compatible_official_cgST"]=str(prof.get("cgST",cgst))
+            row["compatible_profile_LINcode"]=str(prof.get("LINcode",""))
+            if str(r.get("loci_without_exact_hit",""))=="0" and str(r.get("ambiguous_loci",""))=="0":
+                row["exact_profile_assignment"]="Yes"
             for t in CGC:
                 row[f"Cjc_cgc2_{t}"]=cgc_group(prof,t)
 
         # Internal check for Azevedo records that already have a known PubMLST ID.
-        pid=str(r.get("pubmlst_id","")).split(";")[0].strip()
+        pid=overlap_map.get(sid,"").split(";")[0].strip()
         off=current_map.get(pid,{}) if pid else {}
         row["known_overlap_official_cgST"]=off.get("cgST_v2","")
         row["known_overlap_official_LINcode"]=off.get("LINcode_v2","")
-        if pid and row["official_cgST"] and off.get("cgST_v2",""):
-            row["overlap_cgST_agrees"]="Yes" if row["official_cgST"]==off.get("cgST_v2","") else "No"
+        if pid and row["compatible_official_cgST"] and off.get("cgST_v2",""):
+            known=split_profile_ids(off.get("cgST_v2",""))
+            row["overlap_cgST_agrees"]="Yes" if row["compatible_official_cgST"] in known else "No"
         else:
             row["overlap_cgST_agrees"]=""
 
@@ -154,7 +166,7 @@ def main():
         print(
             f"[{i+1}/{len(qc)}] {sid}: "
             f"{row['pubmlst_profile_match_status']} "
-            f"{row['official_cgST'] or row['pubmlst_cgST_candidates'] or '-'}"
+            f"{row['compatible_official_cgST'] or row['pubmlst_cgST_candidates'] or '-'}"
         )
 
     out=pd.DataFrame(rows)
@@ -164,7 +176,8 @@ def main():
     print("\nSUMMARY")
     print(f"Azevedo genomes: {len(out)}")
     print(out["pubmlst_profile_match_status"].value_counts().to_string())
-    print(f"Official LINcodes recovered: {out['official_LINcode'].ne('').sum()}")
+    print(f"Compatible profile LINcodes retrieved: {out['compatible_profile_LINcode'].ne('').sum()}")
+    print(f"Exact profile assignments proven: {(out['exact_profile_assignment']=='Yes').sum()}")
 
     ov=out[out["known_overlap_official_cgST"].ne("")]
     if len(ov):
@@ -172,9 +185,9 @@ def main():
         print(
             ov[[
                 "Strain_ID","pubmlst_overlap_id",
-                "official_cgST","known_overlap_official_cgST",
+                "compatible_official_cgST","known_overlap_official_cgST",
                 "overlap_cgST_agrees",
-                "official_LINcode","known_overlap_official_LINcode"
+                "compatible_profile_LINcode","known_overlap_official_LINcode"
             ]].to_string(index=False)
         )
         disagree=ov[ov["overlap_cgST_agrees"].eq("No")]
@@ -185,15 +198,16 @@ def main():
     print("\nPUBLISHED CLUSTER 21")
     c21=out[out["Cluster21_member"].str.lower().eq("yes")]
     cols=[
-        "Strain_ID","official_cgST","official_LINcode",
+        "Strain_ID","compatible_official_cgST","compatible_profile_LINcode",
         "Cjc_cgc2_25","Cjc_cgc2_10","Cjc_cgc2_5",
         "pubmlst_profile_match_status"
     ]
     print(c21[cols].to_string(index=False) if len(c21) else "None")
 
     print(f"\nWrote: {a.out}")
-    print("Only values returned for an existing PubMLST profile are labelled official.")
-    print("Unmatched genomes remain for PubMLST nearest-profile/Genome Comparator follow-up.")
+    print("cgST/LIN values above belong to official PubMLST profiles compatible with the exact-known calls.")
+    print("They are not assigned to a genome unless exact_profile_assignment=Yes.")
+    print("Unresolved genomes remain for PubMLST Genome Comparator / nearest-profile follow-up.")
 
 
 if __name__=="__main__":
