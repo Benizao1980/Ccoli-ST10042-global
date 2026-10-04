@@ -78,7 +78,7 @@ and reports:
 - the deepest conservatively supported existing LIN prefix;
 - supported/ambiguous `Cjc_cgc2_200/100/50/25/10/5` placements.
 
-The local status labels distinguish `EXACT_REFERENCE_PROFILE`,
+The local status labels distinguish `EXACT_REFERENCE_GENOME`,
 `SUPPORTED_PREFIX` and `UNRESOLVED`. A supported prefix is not an official new
 LINcode.
 
