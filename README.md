@@ -9,6 +9,42 @@ multidrug-resistant ST10042 lineage in nine European countries. We are combining
 that published dataset with the current PubMLST ST10042 population and our Peru
 isolates from Lima and Iquitos.
 
+
+## Dataset at a glance
+
+| Dataset / checkpoint | N | What it represents |
+|---|---:|---|
+| Azevedo published ST10042 collection | 217 | European reference isolates from the 2026 paper |
+| Azevedo Figure 4 | 211 | Published cgMLST-v1 analysis after their completeness filtering |
+| Azevedo genomes currently assembly-ready from public reads | 110 | Paired FASTQ datasets that we can currently reproduce |
+| Published cluster 21 | 44 | Main European cgMLST-v1 cluster in Azevedo et al. |
+| Cluster-21 genomes currently sequence-accessible | 23 | Positive reference anchors; availability is Portugal-biased |
+| Current PubMLST ST10042 records | 41 | Authenticated current snapshot |
+| Current PubMLST records with assemblies | 40 | One no-contig record is Azevedo ES-1, represented by public reads |
+| Peru ST10042 isolates | 23 | 16 Lima + 7 Iquitos |
+| PubMLST-only additions after exact-ID de-duplication | 32 | Current genomes not already represented by an exact Azevedo accession |
+| **Current sequence-accessible candidate set** | **142** | **110 Azevedo + 32 PubMLST-only genomes, before final cgMLST QC** |
+
+```mermaid
+flowchart LR
+    A["Azevedo et al. 2026<br/>217 European ST10042"] --> B["110 currently assembly-ready<br/>public paired-read datasets"]
+    A --> C["44 published cluster-21 isolates"]
+    C --> D["23 currently sequence-accessible<br/>cluster-21 anchors"]
+
+    E["Current PubMLST<br/>41 ST10042 records"] --> F["23 Peru isolates<br/>16 Lima + 7 Iquitos"]
+    E --> G["32 PubMLST-only genomes<br/>after exact-ID de-duplication"]
+
+    B --> H["142 sequence-accessible<br/>candidate genomes"]
+    G --> H
+    H --> I["Assembly / cgMLST-v2 QC"]
+    I --> J["Current PubMLST<br/>cgMLST v2 + LINcodes"]
+    J --> K["Lineage identity"]
+    J --> L["Emergence time"]
+    J --> M["Geographic + source origin"]
+    J --> N["AMR + childhood disease"]
+```
+
+
 ## The biological questions
 
 The analysis is organised around four questions.
@@ -117,6 +153,43 @@ overlap genomes, including UK-7, to clean cgMLST-v2 profiles while the genuinely
 poor UK-2/UK-4/UK-6 samples remained poor. A corrected pilot now maps the same
 fastp-trimmed reads that were used for assembly before this is scaled to all 110
 European genomes.
+
+
+
+### Assembly / cgMLST validation checkpoint
+
+We used the nine isolates present in both Azevedo and current PubMLST as an internal
+validation set. After the INNUca-like coverage filter, the corrected trimmed-read
+pilot cleanly separates genomes that are usable for cgMLST v2 from the three
+problematic UK genomes already excluded from the published Azevedo Figure 4.
+
+| Isolate | Published label | Filtered contigs | Filtered size (Mb) | Exact v2 loci | Ambiguous loci | Loci without exact hit | Interpretation |
+|---|---|---:|---:|---:|---:|---:|---|
+| LU-11 | singleton_68 | 31 | 1.732 | 1141 | 0 | 1 | clean |
+| ES-1 | cluster_21 | 25 | 1.646 | 1139 | 0 | 3 | clean |
+| UK-1 | singleton_64 | 127 | 1.642 | 1139 | 0 | 3 | clean |
+| UK-2 | excluded from Fig. 4 | 216 | 1.755 | 1089 | 24 | 53 | fails v2 completeness |
+| UK-3 | singleton_60 | 71 | 1.645 | 1137 | 0 | 5 | clean |
+| UK-4 | excluded from Fig. 4 | 404 | 2.518 | 1055 | 376 | 87 | poor / mixed |
+| UK-5 | singleton_82 | 36 | 1.650 | 1137 | 1 | 5 | usable; one ambiguous locus |
+| UK-6 | excluded from Fig. 4 | 233 | 1.928 | 1076 | 79 | 66 | fails v2 completeness |
+| **UK-7** | **cluster_21** | **25** | **1.650** | **1139** | **0** | **3** | **clean cluster-21 anchor** |
+
+The important control is UK-7: the unfiltered SPAdes assembly contained many
+duplicate exact allele hits, but coverage filtering reduces it to **1139 unique
+exact loci, 0 ambiguous loci and only 3 loci without an exact hit**. Conversely,
+UK-2/UK-4/UK-6 remain poor after filtering, matching their published exclusion.
+This supports applying the same coverage-filtering strategy to the full 110-isolate
+Azevedo read set.
+
+### Where the four biological questions stand now
+
+| Question | Current evidence | What remains |
+|---|---|---|
+| Are Peru and European isolates the same lineage? | Four Lima 2023 animal isolates share current `Cjc_cgc2_5 group 12905` with UK-7, a published cluster-21 isolate. | Type the full accessible Azevedo set under v2/LIN and calculate Peru-to-European allelic distances. |
+| When did the lineage emerge? | Not yet estimated. The dataset now has the dated isolates needed to test temporal signal. | Build a recombination-aware core phylogeny, test root-to-tip/temporal signal, then date only if supported. |
+| Where / in which reservoir did it emerge? | The published lineage spans countries and human, livestock and food sources; Peru adds human and animal sampling. | Reconstruct ancestral geography/source while accounting for severe sampling imbalance and missing European genomes. |
+| Are Peru isolates MDR and clinically important? | Not yet tested systematically in the 23 Peru ST10042 genomes. | Call AMR determinants and link Peru genomes to case/control phenotype (diarrhoea vs asymptomatic carriage). |
 
 ## What we are trying to do next
 
