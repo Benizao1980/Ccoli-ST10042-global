@@ -1,8 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-# Slurm SBATCH_* environment variables override directives inside a batch script.
-# Clear memory overrides so a stale shell setting cannot reduce the job to 1 MB.
+# Known-good Puma configuration for the cooperma allocation:
+# account=cooperma, partition=standard, memory via --mem-per-cpu.
 unset SBATCH_MEM_PER_NODE SBATCH_MEM_PER_CPU SBATCH_MEM_PER_GPU
-
-exec sbatch --account=cooperma --mem=5gb hpc/01_pubmlst.sbatch
+exec sbatch \
+  --account=cooperma \
+  --partition=standard \
+  --cpus-per-task=1 \
+  --mem-per-cpu=4G \
+  hpc/01_pubmlst.sbatch
