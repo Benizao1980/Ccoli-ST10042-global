@@ -172,11 +172,11 @@ problematic UK genomes already excluded from the published Azevedo Figure 4.
 | LU-11 | singleton_68 | 31 | 1.732 | 1141 | 0 | 1 | clean |
 | ES-1 | cluster_21 | 25 | 1.646 | 1139 | 0 | 3 | clean |
 | UK-1 | singleton_64 | 127 | 1.642 | 1139 | 0 | 3 | clean |
-| UK-2 | excluded from Fig. 4 | 216 | 1.755 | 1089 | 24 | 53 | fails v2 completeness |
+| UK-2 | excluded from Fig. 4 | 216 | 1.755 | 1089 | 24 | 53 | poor; >25 loci without an exact known-allele hit |
 | UK-3 | singleton_60 | 71 | 1.645 | 1137 | 0 | 5 | clean |
 | UK-4 | excluded from Fig. 4 | 404 | 2.518 | 1055 | 376 | 87 | poor / mixed |
 | UK-5 | singleton_82 | 36 | 1.650 | 1137 | 1 | 5 | usable; one ambiguous locus |
-| UK-6 | excluded from Fig. 4 | 233 | 1.928 | 1076 | 79 | 66 | fails v2 completeness |
+| UK-6 | excluded from Fig. 4 | 233 | 1.928 | 1076 | 79 | 66 | poor; >25 loci without an exact known-allele hit |
 | **UK-7** | **cluster_21** | **25** | **1.650** | **1139** | **0** | **3** | **clean cluster-21 anchor** |
 
 The important control is UK-7: the unfiltered SPAdes assembly contained many
@@ -266,6 +266,25 @@ Comparator analysis; they are not assigned locally invented cgSTs or LINcodes.
 
 This step is implemented in
 `scripts/31_map_azevedo_to_official_pubmlst_v2.py`.
+
+## Genome Comparator + LINwalker placement
+
+The primary current-v2 comparison now uses **PubMLST Genome Comparator** for
+scheme-8 allele calls and **LINwalker** as a conservative reference-placement layer.
+The 110 filtered Azevedo assemblies are compared in the same Genome Comparator run
+as the 40 current PubMLST ST10042 genomes with contigs. The database genomes provide
+official cgST/LIN/cgc2 anchors; uploaded Azevedo genomes retain their own labels and
+are not given locally invented official identifiers.
+
+LINwalker 1.1.0 now supports the current 18-component Campylobacter v2 LIN hierarchy,
+parses the Genome Comparator Excel `all` worksheet, applies BIGSdb-style
+missing-data-normalised allele distances, and reports nearest ST/CC/cgST context,
+supported LIN prefixes and supported/ambiguous cgc2 placements. Exact cgST is
+reported only for a complete zero-distance match to a single official reference
+profile.
+
+The reproducible workflow is documented in
+[`docs/pubmlst_genome_comparator_linwalker.md`](docs/pubmlst_genome_comparator_linwalker.md).
 
 ## Planned downstream analyses
 
