@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""Probe ENA for public assemblies corresponding to Azevedo runs lacking public FASTQ.
+"""Probe ENA for public assembly products corresponding to unresolved Azevedo runs.
 
-The Azevedo supplement contains one malformed BioProject value (FR-1 has an ERR run
-accession in the BioProject column). Project-wide assembly queries are therefore made
-only for syntactically valid PRJ*/ERP/DRP/SRP study accessions. Invalid project values
-are reported and, where possible, probed once by exact run_ref instead.
+ENA's Portal API fields vary by result type and can change over time. This script
+therefore discovers current return/search fields at runtime rather than hard-coding
+legacy fields such as assembly.run_ref.
 
-Outputs:
-- results/unresolved_study_assembly_inventory.tsv
-- results/unresolved_azevedo_assembly_matches.tsv
+Routes used:
+1) result=assembly, queried by study_accession where possible;
+2) result=analysis, restricted to SEQUENCE_ASSEMBLY where supported;
+3) conservative exact matching to Azevedo isolate identifiers using returned
+   strain/name/title/sample metadata.
+
+The source Azevedo manifest is never rewritten.
 """
 
 import argparse
 import csv
+import json
 import re
 import time
 from pathlib import Path
@@ -20,43 +24,94 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-ENA_SEARCH = "https://www.ebi.ac.uk/ena/portal/api/search"
-ASSEMBLY_FIELDS = [
-    "accession",
-    "assembly_name",
-    "assembly_title",
-    "run_ref",
-    "sample_accession",
-    "secondary_sample_accession",
-    "study_accession",
-    "strain",
-    "scientific_name",
-]
-
+BASE = "https://www.ebi.ac.uk/ena/portal/api"
 PROJECT_RE = re.compile(r"^(?:PRJ[A-Z]{2}\d+|[ESD]RP\d+)$")
 RUN_RE = re.compile(r"^[ESD]RR\d+$")
 
+PREFERRED_RETURN_FIELDS = {
+    "assembly": [
+        "accession",
+        "study_accession",
+        "sample_accession",
+        "secondary_sample_accession",
+        "assembly_name",
+        "assembly_title",
+        "strain",
+        "scientific_name",
+        "assembly_level",
+        "genome_representation",
+    ],
+    "analysis": [
+        "accession",
+        "analysis_accession",
+        "study_accession",
+        "sample_accession",
+        "secondary_sample_accession",
+        "analysis_type",
+        "analysis_title",
+        "submitted_ftp",
+        "submitted_md5",
+        "scientific_name",
+        "strain",
+    ],
+}
 
-def portal_query(query, retries=4):
+
+def get_json(endpoint, params, retries=4):
+    last = None
+    for attempt in range(1, retries + 1):
+        try:
+            r = requests.get(f"{BASE}/{endpoint}", params=params, timeout=90)
+            r.raise_for_status()
+            return r.json()
+        except (requests.RequestException, json.JSONDecodeError) as e:
+            last = e
+            if attempt < retries:
+                time.sleep(2 ** (attempt - 1))
+    raise RuntimeError(f"ENA {endpoint} failed: {last}")
+
+
+def discover_fields(result, endpoint):
+    data = get_json(endpoint, {"result": result})
+    fields = set()
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, str):
+                fields.add(item)
+            elif isinstance(item, dict):
+                # ENA has used fieldName as well as name in API metadata.
+                for key in ("fieldName", "name", "id"):
+                    if item.get(key):
+                        fields.add(str(item[key]))
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item, str):
+                        fields.add(item)
+                    elif isinstance(item, dict):
+                        for k in ("fieldName", "name", "id"):
+                            if item.get(k):
+                                fields.add(str(item[k]))
+    return fields
+
+
+def portal_search(result, query, fields, retries=4):
     params = {
-        "result": "assembly",
+        "result": result,
         "query": query,
-        "fields": ",".join(ASSEMBLY_FIELDS),
+        "fields": ",".join(fields),
         "format": "tsv",
         "limit": "0",
     }
     last = None
     for attempt in range(1, retries + 1):
         try:
-            r = requests.get(ENA_SEARCH, params=params, timeout=90)
-            # A malformed/unsupported query is not transient: report it to caller.
+            r = requests.get(f"{BASE}/search", params=params, timeout=90)
             if r.status_code == 400:
-                return [], f"HTTP400: {r.text.strip()[:300]}"
+                return [], f"HTTP400: {r.text.strip()[:500]}"
             r.raise_for_status()
-            text = r.text.strip()
-            if not text:
-                return [], None
-            lines = [x for x in text.splitlines() if x]
+            lines = [x for x in r.text.strip().splitlines() if x]
             if len(lines) < 2:
                 return [], None
             return list(csv.DictReader(lines, delimiter="\t")), None
@@ -67,19 +122,40 @@ def portal_query(query, retries=4):
     return [], f"{type(last).__name__}: {last}"
 
 
-def exact_values(row):
+def tokens(value):
+    if value is None:
+        return set()
+    s = str(value).strip()
+    if not s:
+        return set()
+    out = {s}
+    out.update(x for x in re.split(r"[,;|\s]+", s) if x)
+    return out
+
+
+def record_values(rec):
     vals = set()
-    for k, v in row.items():
-        if v is None:
-            continue
-        s = str(v).strip()
-        if not s:
-            continue
-        vals.add(s)
-        if k == "run_ref":
-            # ENA may represent multiple run references in one field.
-            vals.update(x for x in re.split(r"[,;\s]+", s) if x)
+    for value in rec.values():
+        vals |= tokens(value)
     return vals
+
+
+def exact_text_identifier_hits(rec, wanted):
+    """Conservative identifier matching.
+
+    Exact scalar/token equality is accepted. For free-text title fields we only
+    accept identifiers as delimiter-bounded tokens, avoiding DE-1 matching DE-10.
+    """
+    hits = record_values(rec) & wanted
+    for key in ("assembly_title", "analysis_title"):
+        text = str(rec.get(key, "") or "")
+        for ident in wanted:
+            if not ident:
+                continue
+            pat = rf"(?<![A-Za-z0-9]){re.escape(ident)}(?![A-Za-z0-9])"
+            if re.search(pat, text):
+                hits.add(ident)
+    return hits
 
 
 def main():
@@ -87,6 +163,7 @@ def main():
     p.add_argument("--azevedo", default="data/europe_217_manifest.tsv")
     p.add_argument("--ena-inventory", default="data/europe_ena_fastq_manifest.tsv")
     p.add_argument("--assembly-inventory", default="results/unresolved_study_assembly_inventory.tsv")
+    p.add_argument("--analysis-inventory", default="results/unresolved_study_analysis_inventory.tsv")
     p.add_argument("--matches", default="results/unresolved_azevedo_assembly_matches.tsv")
     a = p.parse_args()
 
@@ -107,58 +184,126 @@ def main():
         print(f"WARNING invalid BioProject value {x!r}:")
         print(affected.to_string(index=False))
 
-    all_assemblies = []
+    # Discover the API schema currently exposed by ENA.
+    schemas = {}
+    for result in ("assembly", "analysis"):
+        return_fields = discover_fields(result, "returnFields")
+        search_fields = discover_fields(result, "searchFields")
+        selected = [f for f in PREFERRED_RETURN_FIELDS[result] if f in return_fields]
+        # accession is useful and normally returned even when not requested, but ask if allowed.
+        if not selected:
+            raise RuntimeError(f"No usable ENA return fields discovered for result={result}")
+        schemas[result] = {
+            "return": return_fields,
+            "search": search_fields,
+            "selected": selected,
+        }
+        print(
+            f"ENA {result}: discovered {len(return_fields)} return fields, "
+            f"{len(search_fields)} search fields; requesting {','.join(selected)}"
+        )
+
     query_errors = []
+    assembly_records = []
+    analysis_records = []
 
-    # Bulk project queries: only a handful of API calls.
     for study in valid_projects:
-        recs, err = portal_query(f'study_accession="{study}"')
-        if err:
-            print(f"WARNING assembly query failed for {study}: {err}")
-            query_errors.append((study, err))
-            continue
-        print(f"{study}: {len(recs)} public assemblies")
-        for rec in recs:
-            rec["query_kind"] = "study_accession"
-            rec["queried_value"] = study
-            all_assemblies.append(rec)
+        # Genome assembly catalogue.
+        if "study_accession" in schemas["assembly"]["search"]:
+            recs, err = portal_search(
+                "assembly",
+                f'study_accession="{study}"',
+                schemas["assembly"]["selected"],
+            )
+            if err:
+                print(f"WARNING assembly query failed for {study}: {err}")
+                query_errors.append(("assembly", study, err))
+            else:
+                print(f"{study}: {len(recs)} public genome-assembly records")
+                for rec in recs:
+                    rec["queried_study"] = study
+                    assembly_records.append(rec)
+        else:
+            print("WARNING ENA assembly schema does not expose study_accession as searchable")
+            query_errors.append(("assembly", study, "study_accession not searchable"))
 
-    # Rescue malformed project metadata with a single exact run-ref query per affected row.
-    # This avoids trying to use an ERR accession as a study accession.
+        # Submitted analysis objects can also carry sequence assemblies/files.
+        if "study_accession" in schemas["analysis"]["search"]:
+            q = f'study_accession="{study}"'
+            if "analysis_type" in schemas["analysis"]["search"]:
+                q += ' AND analysis_type="SEQUENCE_ASSEMBLY"'
+            recs, err = portal_search("analysis", q, schemas["analysis"]["selected"])
+            if err:
+                print(f"WARNING analysis query failed for {study}: {err}")
+                query_errors.append(("analysis", study, err))
+            else:
+                print(f"{study}: {len(recs)} public sequence-assembly analysis records")
+                for rec in recs:
+                    rec["queried_study"] = study
+                    analysis_records.append(rec)
+        else:
+            print("WARNING ENA analysis schema does not expose study_accession as searchable")
+            query_errors.append(("analysis", study, "study_accession not searchable"))
+
+    # FR-1 has an ERR value in the published BioProject column. We cannot safely
+    # translate that to a project. If current assembly/analysis schemas happen to
+    # expose a run field, try it; otherwise report that the route is unavailable.
     for _, ar in u[u["Bioproject"].isin(invalid_projects)].iterrows():
         run = ar["Run Accession Number"].strip()
         if not RUN_RE.match(run):
-            print(f"WARNING cannot run-ref probe {ar['Strain_ID']}: invalid run {run!r}")
             continue
-        recs, err = portal_query(f'run_ref="{run}"')
-        if err:
-            print(f"WARNING run_ref assembly query failed for {run}: {err}")
-            query_errors.append((run, err))
-            continue
-        print(f"{run}: {len(recs)} public assemblies by exact run_ref")
-        for rec in recs:
-            rec["query_kind"] = "run_ref"
-            rec["queried_value"] = run
-            all_assemblies.append(rec)
+        attempted = False
+        for result, bucket in (("assembly", assembly_records), ("analysis", analysis_records)):
+            candidate_run_fields = [
+                f for f in ("run_accession", "run_ref", "run") if f in schemas[result]["search"]
+            ]
+            if not candidate_run_fields:
+                continue
+            attempted = True
+            field = candidate_run_fields[0]
+            recs, err = portal_search(
+                result,
+                f'{field}="{run}"',
+                schemas[result]["selected"],
+            )
+            if err:
+                print(f"WARNING {result} run query failed for {run}: {err}")
+                query_errors.append((result, run, err))
+            else:
+                print(f"{run}: {len(recs)} public {result} records by {field}")
+                for rec in recs:
+                    rec["queried_study"] = ""
+                    bucket.append(rec)
+        if not attempted:
+            print(
+                f"NOTE {run}: current ENA assembly/analysis search schemas expose no "
+                "run-linked field; FR-1 cannot be rescued by exact run query here."
+            )
 
-    # De-duplicate assembly records returned by multiple query routes.
-    uniq = {}
-    for rec in all_assemblies:
-        key = (
-            rec.get("accession", ""),
-            rec.get("assembly_name", ""),
-            rec.get("run_ref", ""),
-            rec.get("study_accession", ""),
-        )
-        uniq[key] = rec
-    all_assemblies = list(uniq.values())
+    # De-duplicate within each domain.
+    def dedup(records):
+        uniq = {}
+        for rec in records:
+            key = tuple(sorted((k, str(v)) for k, v in rec.items() if k != "queried_study"))
+            uniq[key] = rec
+        return list(uniq.values())
+
+    assembly_records = dedup(assembly_records)
+    analysis_records = dedup(analysis_records)
 
     Path(a.assembly_inventory).parent.mkdir(parents=True, exist_ok=True)
-    inv_fields = ["query_kind", "queried_value"] + ASSEMBLY_FIELDS
-    with open(a.assembly_inventory, "w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=inv_fields, delimiter="\t", extrasaction="ignore")
-        w.writeheader()
-        w.writerows(all_assemblies)
+
+    def write_inventory(path, records, result):
+        fields = ["queried_study"] + schemas[result]["selected"]
+        # Preserve only columns that can actually be returned plus our provenance column.
+        fields = list(dict.fromkeys(fields))
+        with open(path, "w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=fields, delimiter="\t", extrasaction="ignore")
+            w.writeheader()
+            w.writerows(records)
+
+    write_inventory(a.assembly_inventory, assembly_records, "assembly")
+    write_inventory(a.analysis_inventory, analysis_records, "analysis")
 
     matches = []
     for _, ar in u.iterrows():
@@ -168,40 +313,39 @@ def main():
             ar["Run Accession Number"].strip(),
         }
         wanted.discard("")
-        for rec in all_assemblies:
-            vals = exact_values(rec)
-            hit = sorted(wanted & vals)
-            if not hit:
-                continue
+        study = ar["Bioproject"].strip()
 
-            # If this came from a study query, require the Azevedo project to agree.
-            qkind = rec.get("query_kind", "")
-            if qkind == "study_accession":
-                if ar["Bioproject"].strip() != rec.get("queried_value", ""):
+        for result, records in (("assembly", assembly_records), ("analysis", analysis_records)):
+            for rec in records:
+                # For valid projects, keep matches inside the same queried study.
+                if PROJECT_RE.match(study) and rec.get("queried_study", "") != study:
                     continue
-
-            matches.append({
-                "Strain_ID": ar["Strain_ID"],
-                "Country": ar["Country"],
-                "Bioproject": ar["Bioproject"],
-                "Run Accession Number": ar["Run Accession Number"],
-                "ENA/SRA_ID": ar["ENA/SRA_ID"],
-                "Figure 4 cluster clean": ar["Figure 4 cluster clean"],
-                "Cluster 21 member": ar["Cluster 21 member"],
-                "assembly_accession": rec.get("accession", ""),
-                "assembly_name": rec.get("assembly_name", ""),
-                "assembly_title": rec.get("assembly_title", ""),
-                "assembly_strain": rec.get("strain", ""),
-                "assembly_run_ref": rec.get("run_ref", ""),
-                "assembly_study_accession": rec.get("study_accession", ""),
-                "matched_identifier": ";".join(hit),
-            })
+                hit = sorted(exact_text_identifier_hits(rec, wanted))
+                if not hit:
+                    continue
+                matches.append({
+                    "Strain_ID": ar["Strain_ID"],
+                    "Country": ar["Country"],
+                    "Bioproject": ar["Bioproject"],
+                    "Run Accession Number": ar["Run Accession Number"],
+                    "ENA/SRA_ID": ar["ENA/SRA_ID"],
+                    "Figure 4 cluster clean": ar["Figure 4 cluster clean"],
+                    "Cluster 21 member": ar["Cluster 21 member"],
+                    "ena_result_type": result,
+                    "record_accession": rec.get("accession", rec.get("analysis_accession", "")),
+                    "sample_accession": rec.get("sample_accession", ""),
+                    "record_name": rec.get("assembly_name", ""),
+                    "record_title": rec.get("assembly_title", rec.get("analysis_title", "")),
+                    "strain": rec.get("strain", ""),
+                    "submitted_ftp": rec.get("submitted_ftp", ""),
+                    "matched_identifier": ";".join(hit),
+                })
 
     match_fields = [
         "Strain_ID","Country","Bioproject","Run Accession Number","ENA/SRA_ID",
-        "Figure 4 cluster clean","Cluster 21 member","assembly_accession",
-        "assembly_name","assembly_title","assembly_strain","assembly_run_ref",
-        "assembly_study_accession","matched_identifier",
+        "Figure 4 cluster clean","Cluster 21 member","ena_result_type",
+        "record_accession","sample_accession","record_name","record_title",
+        "strain","submitted_ftp","matched_identifier",
     ]
     with open(a.matches, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=match_fields, delimiter="\t")
@@ -213,12 +357,14 @@ def main():
     c21_matched = set(c21["Strain_ID"]) & matched_ids
 
     print()
-    print(f"Public assemblies returned: {len(all_assemblies)}")
-    print(f"Unresolved Azevedo isolates with exact assembly identifier match: {len(matched_ids)}")
+    print(f"Public genome-assembly records returned: {len(assembly_records)}")
+    print(f"Public SEQUENCE_ASSEMBLY analysis records returned: {len(analysis_records)}")
+    print(f"Unresolved Azevedo isolates with conservative exact identifier match: {len(matched_ids)}")
     print(f"Unresolved cluster 21 isolates: {len(c21)}")
-    print(f"Unresolved cluster 21 isolates rescued by exact assembly match: {len(c21_matched)}")
-    print(f"Assembly-query errors: {len(query_errors)}")
+    print(f"Unresolved cluster 21 isolates rescued by exact match: {len(c21_matched)}")
+    print(f"Query errors: {len(query_errors)}")
     print(f"Wrote: {a.assembly_inventory}")
+    print(f"Wrote: {a.analysis_inventory}")
     print(f"Wrote: {a.matches}")
 
 
