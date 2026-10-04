@@ -215,3 +215,23 @@ Use `scripts/18_flag_assembly_qc_outliers.py` to list review candidates. Its
 size/GC/fragmentation thresholds are diagnostic only, not automatic exclusions.
 Final inclusion for the main analysis should combine assembly sanity checks with
 PubMLST cgMLST-v2 typing quality, especially the native `max_missing=25` rule.
+
+
+### QC interpretation after SPAdes
+
+Eleven of 110 assemblies cross conservative review thresholds. The strongest
+outliers are PT-32 and PT-33 (large, high-GC, highly fragmented) and UK-2/UK-4/UK-6
+(large and highly fragmented). Notably, UK-2, UK-4 and UK-6 are the same three UK
+isolates excluded from Azevedo Figure 4, which supports the utility of the QC flags.
+
+Do not automatically discard all 11 flagged assemblies. Several flagged genomes
+were retained in the published analysis, including cluster-21 anchors PT-26, PT-32,
+PT-33 and UK-7. Instead, validate allele recovery first. UK-7 is especially useful
+because it has an existing official PubMLST cgMLST-v2/LIN assignment.
+
+Use `scripts/19_validate_pubmlst_v2_on_overlaps.py` to query the current PubMLST
+scheme-8 sequence endpoint sequentially for local SPAdes assemblies that also have
+known PubMLST records. Compare exact allele recovery and returned scheme fields to
+the official current record before scaling allele calling to all 110 Azevedo
+assemblies. BIGSdb's scheme sequence endpoint reports exact allele matches; genuine
+novel alleles will require a different/local calling route for the final analysis.
