@@ -161,3 +161,38 @@ Before downloading the 111 FASTQ datasets, run
 `scripts/10_plan_azevedo_assembly.py` to quantify compressed download volume and
 read-file layout. The separate `environment-assembly.yml` contains SPAdes,
 Unicycler (for hybrid data), fastp and QUAST.
+
+
+## Current PubMLST v2/LIN checkpoint (2026-10-04)
+
+Live PubMLST confirms **cgMLST v2 = scheme 8 (1,142 loci)**. Its native LINcode
+uses 18 thresholds:
+
+`1119,1085,982,914,857,680,445,343,183,86,43,10,7,5,3,2,1,0`
+
+with `max_missing=25`. The fixed `Cjc_cgc2_200/100/50/25/10/5`
+classification schemes are convenient views of the same v2 population structure,
+but are not the full LINcode.
+
+The ENA inventory contains 111 nominally resolved Azevedo runs, but **DK-2
+(ERR10702984) has no FASTQ files**. The actual assembly-ready Azevedo set is
+therefore **110 paired-end runs**, giving a current analysis-ready candidate set of
+**142 genomes = 110 Azevedo + 32 PubMLST-only assemblies**, before assembly/cgMLST
+quality filtering.
+
+A preliminary read of the current PubMLST isolate JSON shows an important result:
+published Azevedo cluster-21 anchor **UK-7 / PubMLST 119231** is in
+`Cjc_cgc2_5 group 12905`. Four Peru ST10042 records — **149884, 149885,
+149886 and 149892** — are also in group 12905. Their native LINcodes share the
+same prefix through the 5-allele LIN level and split only at finer thresholds.
+This is strong current-cgMLST-v2 evidence that at least four Peru isolates occupy
+the same <=5-AD PubMLST group as a published cluster-21 anchor.
+
+This does **not** make the v2 group synonymous with Azevedo's published v1
+cluster 21. The full accessible Azevedo set must still be assembled and typed under
+v2 to determine how the published v1 cluster maps onto current LIN/cgc2 space.
+
+Use `scripts/13_extract_pubmlst_v2_lincodes.py` for the clean current-PubMLST
+table and focal Peru summary. The earlier generic inspector was intentionally broad
+and previously matched the substring "lin" inside fields such as tetracycline; this
+has been corrected.
