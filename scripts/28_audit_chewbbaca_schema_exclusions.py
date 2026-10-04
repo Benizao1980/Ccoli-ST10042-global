@@ -130,7 +130,7 @@ def main():
             ].to_string(index=False)
         )
     else:
-        print("No current ST10042 official profile uses any of the 163 excluded alleles.")
+        print("Among the ST10042 cgST candidate profiles successfully found/audited, none uses any of the 163 excluded alleles.")
 
     print(f"\nWrote: {a.out}")
 
