@@ -7,16 +7,24 @@ reference_study:
   citation: Azevedo et al. 2026 Emerging Infectious Diseases
   isolates_total: 217
   isolates_figure4: 211
-  cgmlst_scheme: PubMLST Campylobacter cgMLST v1
-  cgmlst_loci: 1343
-  scheme_id: 4
-  chewbbaca_version: 3.1.2
-  bs_r_threshold: 0.6
-  size_threshold: 0.2
+  published_cgmlst_scheme: PubMLST Campylobacter cgMLST v1
+  published_cgmlst_loci: 1343
+  published_cluster_threshold_allelic_differences: 5
+  published_cluster21_n: 44
+  note: Published v1 cluster labels are retained as annotations/anchors, not recomputed as the primary analysis.
+
+primary_analysis:
+  source_of_truth: PubMLST/BIGSdb
+  cgmlst_scheme: PubMLST Campylobacter cgMLST v2
+  scheme_id: discover_from_pubmlst_api
+  lin_codes: true
+  classification_scheme_id: discover_from_pubmlst_api
   min_locus_call_fraction: 0.95
-  cluster_threshold_allelic_differences: 5
-  reportree_version: 2.5.4
-  mst_algorithm: MSTreeV2
+  assembly:
+    illumina_only: SPAdes
+    spades_mode: isolate
+    hybrid_illumina_ont: Unicycler
+  rationale: Use the current PubMLST scheme and LIN nomenclature for the main global analysis.
 
 focal_population:
   country: Peru
