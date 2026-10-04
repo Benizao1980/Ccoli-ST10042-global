@@ -15,16 +15,24 @@ reference_study:
 
 primary_analysis:
   source_of_truth: PubMLST/BIGSdb
-  cgmlst_scheme: PubMLST Campylobacter cgMLST v2
-  scheme_id: discover_from_pubmlst_api
+  cgmlst_scheme: C. jejuni / C. coli cgMLST v2
+  scheme_id: 8
+  cgmlst_loci: 1142
   lin_codes: true
-  classification_scheme_id: discover_from_pubmlst_api
-  min_locus_call_fraction: 0.95
+  lin_definition: use scheme_8_lincodes_from_live_pubmlst
+  max_missing_loci_for_cgST_lin: 25
+  classification_views:
+    Cjc_cgc2_200: 11
+    Cjc_cgc2_100: 12
+    Cjc_cgc2_50: 13
+    Cjc_cgc2_25: 14
+    Cjc_cgc2_10: 15
+    Cjc_cgc2_5: 16
   assembly:
     illumina_only: SPAdes
     spades_mode: isolate
     hybrid_illumina_ont: Unicycler
-  rationale: Use the current PubMLST scheme and LIN nomenclature for the main global analysis.
+  rationale: Use current PubMLST cgMLST v2 and the native 18-level LIN code as the main global nomenclature.
 
 focal_population:
   country: Peru
