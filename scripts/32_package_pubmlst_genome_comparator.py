@@ -66,8 +66,15 @@ def main():
                 "town_or_city":r.get("town_or_city",""),
                 "year":r.get("year",""),
                 "source":r.get("source",""),
+                "ST":"10042",
+                "clonal_complex":r.get("clonal_complex",""),
                 "cgST_v2":r.get("cgST_v2",""),
                 "LINcode_v2":r.get("LINcode_v2",""),
+                "Cjc_cgc2_200":r.get("Cjc_cgc2_200",""),
+                "Cjc_cgc2_100":r.get("Cjc_cgc2_100",""),
+                "Cjc_cgc2_50":r.get("Cjc_cgc2_50",""),
+                "Cjc_cgc2_25":r.get("Cjc_cgc2_25",""),
+                "Cjc_cgc2_10":r.get("Cjc_cgc2_10",""),
                 "Cjc_cgc2_5":r.get("Cjc_cgc2_5",""),
             })
 
