@@ -134,7 +134,11 @@ European collection is currently sequence-accessible.
 ### 4. Reassembled and quality-checked the accessible European reads
 
 All **110/110** paired Azevedo datasets completed fastp preprocessing and SPAdes
-`--isolate` assembly successfully.
+`--isolate` assembly successfully. The validated INNUca-like post-assembly
+coverage filter has now also completed for **110/110 genomes with 0 failures**.
+After filtering, the median assembly is **1.648 Mb in 27 contigs**. The remaining
+largest/most fragmented genomes are retained for cgMLST-v2 QC rather than excluded
+from assembly statistics alone.
 
 Initial QC identified several clearly problematic assemblies. The same UK isolates
 excluded from the published Azevedo Figure 4 (UK-2, UK-4 and UK-6) also perform
