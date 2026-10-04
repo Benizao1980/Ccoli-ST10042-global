@@ -12,14 +12,20 @@ import json
 import re
 from pathlib import Path
 
-PAT = re.compile(r"(lin|cgst|cgmlst|cgc2|classification)", re.I)
+def relevant_key(key):
+    k=str(key).lower()
+    return (
+        k in {"lincode", "lincode_fields", "cgst", "cgmlst"}
+        or "cgc2" in k
+        or "classification" in k
+    )
 
 
 def walk(obj, path="$"):
     if isinstance(obj, dict):
         for k,v in obj.items():
             p=f"{path}.{k}"
-            if PAT.search(str(k)):
+            if relevant_key(k):
                 yield p,v
             yield from walk(v,p)
     elif isinstance(obj,list):
