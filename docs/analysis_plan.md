@@ -22,6 +22,7 @@ Azevedo et al. (2026)?
 5. De-duplicate against the Azevedo dataset using run accession, BioSample/assembly,
    PubMLST ID, then strain/isolate metadata as fallback.
 6. Preserve provenance flags (`Azevedo`, `PubMLST`, `Peru`) rather than discarding overlap.
+7. Treat 249 (217 + 32 exact-unmatched PubMLST records) as a provisional pre-QC candidate count only; inspect unmatched European records for hidden duplicate submissions before finalising N.
 
 ## Stage 3 — focal Peru analysis
 For each Peru genome calculate:
