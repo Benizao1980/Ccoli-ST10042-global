@@ -1,0 +1,10 @@
+name: st10042-cgmlst
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.11
+  - chewbbaca=3.5.4
+  - blast
+  - pandas
+  - requests
