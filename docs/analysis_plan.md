@@ -253,3 +253,27 @@ filtered version of the local SPAdes FASTA, because the first pilot queried ever
 SPAdes contig including small low-coverage graph fragments. This will establish
 whether ambiguity is driven by our assembly representation or is intrinsic to the
 stored isolate.
+
+
+### INNUca-like coverage-filter pilot
+
+The direct overlap comparison shows that >=500-bp length filtering does not solve
+the multiple-exact-hit problem. UK-7 remains 75 ambiguous loci locally versus 0 in
+the official PubMLST assembly; UK-3 and UK-5 show the same pattern. Conversely,
+the official assemblies for UK-2/UK-4/UK-6 remain poor by scheme-8 coverage, which
+supports their exclusion as sample-level failures rather than a local-assembly-only
+artifact.
+
+The published Azevedo workflow used INNUca. INNUca applies more than a simple
+length filter: its documented defaults include SPAdes k-mer coverage filtering and
+a read-mapping post-assembly filter that retains contigs with mean mapped coverage
+>= max(10x, one-third of the assembly-wide mean coverage). We did not apply that
+mapping filter in the first SPAdes pass.
+
+Use `scripts/21_validate_innuca_like_filter.py` on the known overlaps before
+scaling. It approximates the relevant INNUca post-assembly steps using the current
+SPAdes contigs and fastp-processed reads: contig length >=200 bp, SPAdes k-mer
+coverage >=2, Bowtie2 very-sensitive-local mapping, then the same dynamic mapped-
+coverage threshold. It then re-queries PubMLST scheme 8. This is deliberately
+described as INNUca-like rather than an exact reconstruction because our trimming
+and software versions differ from the published pipeline.
