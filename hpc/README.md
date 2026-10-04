@@ -53,7 +53,10 @@ After OAuth setup succeeds:
 bash hpc/submit_pubmlst.sh
 ```
 
-The wrapper clears any `SBATCH_MEM_*` variables in the submitting shell and explicitly requests 5 GB. This matters because Slurm `SBATCH_*` environment variables override `#SBATCH` directives; a stale 1 MB override caused an earlier job to be killed during Conda activation.
+The wrapper uses the known-good Puma configuration for this account:
+`--account=cooperma --partition=standard`, with memory requested as
+`--mem-per-cpu=4G`. On Puma, this is more reliable than `--mem` for this
+allocation and avoids falling onto the windfall partition.
 
 This creates:
 
@@ -93,3 +96,21 @@ env | grep '^SBATCH_' || true
 ```
 
 On Puma, one standard CPU corresponds to 5 GB memory. The safe submission wrapper above explicitly requests 5 GB and removes inherited memory overrides before calling `sbatch`.
+
+
+## Known-good Puma settings
+
+For the cooperma allocation, use:
+
+```bash
+#SBATCH --account=cooperma
+#SBATCH --partition=standard
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=4G
+```
+
+Submit with:
+
+```bash
+bash hpc/submit_pubmlst.sh
+```
