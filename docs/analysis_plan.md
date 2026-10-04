@@ -48,3 +48,19 @@ The seven-locus ST alone does not prove membership of the European MDR epidemic 
 FastTree topology alone should not be used to infer direction of transmission or a single
 introduction. The first formal test is the matched cgMLST analysis; directionality requires
 additional temporal/epidemiological evidence and ideally recombination-aware SNP analysis.
+
+## Current archive-availability checkpoint (2026-10-04)
+
+The ENA file-report API currently resolves generated FASTQ files for **111/217**
+Azevedo run accessions and returns no public FASTQ record for **106/217**. This is
+an archive-availability issue rather than a Slurm/resource failure: the resolution
+job completed successfully and wrote an explicit per-run inventory.
+
+The paper was released in September 2026 and states that raw reads were deposited in
+ENA, so the unresolved accessions should be treated as **not currently retrievable
+through the public ENA file-report endpoint**, not as absent or invalid data. Exact
+reproduction of the full 217-isolate analysis is therefore blocked until those
+records become public/retrievable or an alternative public sequence source is found.
+
+Use `scripts/07_diagnose_ena_availability.py` to quantify the effect by BioProject,
+country and published cluster (especially cluster 21).
