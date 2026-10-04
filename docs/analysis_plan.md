@@ -95,3 +95,38 @@ discovers `returnFields` and `searchFields` at runtime and queries both
 `assembly` and `analysis` (sequence-assembly) domains using only fields that ENA
 currently advertises. This avoids treating API-schema drift as evidence that an
 assembly is absent.
+
+
+## Public sequence availability conclusion (2026-10-04)
+
+The archive rescue check is now complete for the 106 Azevedo records without public
+FASTQ. Using ENA's current advertised assembly and analysis schemas, the three valid
+unresolved BioProjects return **0 public genome-assembly records** and **0 public
+SEQUENCE_ASSEMBLY analysis records**. FR-1 (published with an ERR accession in the
+BioProject field) likewise returns no public assembly/analysis object by exact run
+accession. Query errors are zero.
+
+Therefore, as of this checkpoint:
+
+- Azevedo isolates with publicly retrievable FASTQ: **111/217**;
+- Azevedo isolates without currently retrievable FASTQ or assembly/analysis object:
+  **106/217**;
+- published cluster 21 with publicly retrievable sequence: **23/44**;
+- published cluster 21 currently unavailable: **21/44**.
+
+The 41-record PubMLST snapshot contains 40 assemblies; the sole no-contig record
+(PubMLST 151737) is an exact duplicate of Azevedo ES-1 and is represented by the
+public Azevedo run. All 32 PubMLST-only records remaining after exact-ID
+de-duplication therefore have sequence.
+
+This yields a **currently sequence-accessible candidate set of 143 isolates before
+cgMLST QC**: 111 Azevedo + 32 PubMLST-only additions. This includes all 23 Peru
+focal isolates and 23 published cluster-21 anchors.
+
+Do not interpret distance from the 23 accessible cluster-21 anchors as a complete
+negative test of cluster-21 membership, because 21/44 published members are
+currently unavailable. A <=5-allele match to an accessible published cluster-21
+genome is positive evidence; absence of such a match is not definitive exclusion.
+
+Use `scripts/09_build_accessible_manifest.py` to generate the current-access
+manifest reproducibly.
