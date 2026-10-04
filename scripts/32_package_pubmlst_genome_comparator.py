@@ -76,6 +76,10 @@ def main():
                 "Cjc_cgc2_25":r.get("Cjc_cgc2_25",""),
                 "Cjc_cgc2_10":r.get("Cjc_cgc2_10",""),
                 "Cjc_cgc2_5":r.get("Cjc_cgc2_5",""),
+                "published_cluster21":r.get("published_cluster21",""),
+                "azevedo_strain_id":r.get("azevedo_strain_id",""),
+                "peru_focal":r.get("peru_focal",""),
+                "provenance":r.get("provenance",""),
             })
 
     anchors=pd.DataFrame(anchor_rows)
