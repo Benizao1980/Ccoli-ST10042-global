@@ -76,3 +76,12 @@ concluding that those genomes are inaccessible. Use
 Any assembly recovered this way should be matched back to an Azevedo isolate using
 stable exact identifiers (run reference, strain/ENA identifier) before use. Do not
 infer a match solely from country/year or approximate names.
+
+
+### FR-1 BioProject anomaly
+
+The Azevedo supplementary manifest records `ERR16782028` in the BioProject field
+for FR-1. This is a run accession, not a BioProject/study accession. Preserve the
+published value in the source manifest rather than silently correcting it. Assembly
+probing therefore validates project-accession syntax and handles FR-1 separately by
+its exact run accession.
