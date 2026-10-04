@@ -251,6 +251,22 @@ The next step is to freeze the current PubMLST scheme-8 allele definitions/profi
 and perform full allele calling so genuine novel alleles are not misclassified as
 missing data.
 
+## PubMLST-first nomenclature strategy
+
+The primary population-genomic nomenclature is **PubMLST cgMLST v2 (scheme 8) +
+native LINcodes**. Local chewBBACA work is retained only as a validation/fallback
+for profiles that PubMLST cannot resolve directly.
+
+For each filtered Azevedo genome we first reuse the actual PubMLST scheme-8
+whole-genome query. If BIGSdb identifies a single existing cgST, the corresponding
+profile is fetched directly from PubMLST and its **official LINcode and
+`Cjc_cgc2_*` groups** are exported. Genomes with no exact existing profile, or
+multiple compatible profiles, are kept separate for nearest-profile / Genome
+Comparator analysis; they are not assigned locally invented cgSTs or LINcodes.
+
+This step is implemented in
+`scripts/31_map_azevedo_to_official_pubmlst_v2.py`.
+
 ## Planned downstream analyses
 
 Once the current cgMLST-v2/LIN dataset is finalised, the project will move through
