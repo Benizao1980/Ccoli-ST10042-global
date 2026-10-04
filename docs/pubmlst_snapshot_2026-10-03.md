@@ -85,3 +85,39 @@ provides much broader European surveillance coverage.
 The next formal step is to identify exact overlap between the 41 PubMLST records and
 the Azevedo 217 using stable identifiers/accessions before concatenating sequence
 sets.
+
+
+## Exact overlap with Azevedo et al.
+
+Exact stable-identifier matching found **9** current PubMLST records already represented
+in the 217-isolate Azevedo collection:
+
+| PubMLST | Azevedo | published Figure 4 status |
+|---:|---|---|
+| 112734 | LU-11 | singleton_68 |
+| 118912 | UK-1 | singleton_64 |
+| 118906 | UK-2 | excluded |
+| 119062 | UK-3 | singleton_60 |
+| 148932 | UK-4 | excluded |
+| 148958 | UK-5 | singleton_82 |
+| 148964 | UK-6 | excluded |
+| 119231 | UK-7 | cluster_21 |
+| 151737 | ES-1 | cluster_21 |
+
+PubMLST 151737 has no contigs in BIGSdb, but the same isolate is represented by
+Azevedo ES-1 with run accession SRR31589120. Thus its absence from the 40-genome
+PubMLST set does not remove ES-1 from the combined sequence analysis.
+
+After exact-identifier de-duplication, **32 PubMLST records are not exactly matched**
+to the Azevedo set: 23 Peru and 9 non-Peru. This gives **249 provisional candidate
+isolates** (217 + 32) before additional sequence-/metadata-level duplicate QC.
+
+The 9 unmatched non-Peru PubMLST records are from Portugal (4), Luxembourg (1),
+Spain (1), UK (1), UK Northern Ireland (1), and Vietnam (1).
+
+A useful caution from the exploratory tree is that LU-11 (the Luxembourg 2021
+environmental-water isolate) is a published **singleton_68**, not cluster 21.
+Therefore proximity to LU-11 in the initial FastTree cannot be interpreted as
+evidence that the Peru genomes belong to published cluster 21. UK-7 and ES-1 are
+the two exact-overlap records assigned to published cluster 21; ES-1 is absent from
+the PubMLST-contig tree because BIGSdb has no contigs for that record.
